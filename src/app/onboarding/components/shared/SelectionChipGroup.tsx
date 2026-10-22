@@ -17,8 +17,11 @@ export const SelectionChipGroup = ({
   selected,
   onChange,
 }: Props) => (
-  <section className="flex flex-col gap-3" aria-labelledby={`${label}-heading`}>
-    <h2 id={`${label}-heading`} className="text-[15px] font-medium">
+  <section
+    className="flex flex-col gap-3"
+    aria-labelledby={`selection-${label.replace(/\s+/g, "-")}-heading`}
+  >
+    <h2 id={`selection-${label.replace(/\s+/g, "-")}-heading`} className="text-[15px] font-medium">
       {label} {hint && <span className="text-xs font-normal text-muted">{hint}</span>}
     </h2>
     <div role={mode === "radio" ? "radiogroup" : "group"} className="flex flex-wrap gap-2">

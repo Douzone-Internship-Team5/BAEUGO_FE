@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { LEARNING_GOALS, type TimeSlot } from "../data/options";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
@@ -17,6 +18,7 @@ interface Props {
 const initialTopics = ["문서 작성", "데이터 기반 의사결정", "업무 자동화"];
 
 export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
+  const router = useRouter();
   const [step, setStep] = useState(Math.min(3, Math.max(1, initialStep)));
   const [situation, setSituation] = useState("재직 중");
   const [job, setJob] = useState("기획·PM");
@@ -34,7 +36,10 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
     );
   };
 
-  const handleBack = () => setStep((current) => Math.max(1, current - 1));
+  const handleBack = () => {
+    if (step === 1) router.push("/onboarding");
+    else setStep((current) => current - 1);
+  };
   const handleNext = () => {
     if (step < 3) setStep((current) => current + 1);
     else setCompleted(true);
