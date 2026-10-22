@@ -15,14 +15,12 @@ interface Props {
   initialStep?: number;
 }
 
-const initialTopics = ["문서 작성", "데이터 기반 의사결정", "업무 자동화"];
-
 export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
   const [step, setStep] = useState(Math.min(3, Math.max(1, initialStep)));
-  const [situation, setSituation] = useState("재직 중");
-  const [job, setJob] = useState("기획·PM");
-  const [topics, setTopics] = useState(initialTopics);
+  const [situation, setSituation] = useState("");
+  const [job, setJob] = useState("");
+  const [topics, setTopics] = useState<string[]>([]);
   const [goal, setGoal] = useState<number>(LEARNING_GOALS[1]);
   const [slots, setSlots] = useState<TimeSlot[]>([
     { id: "commute", start: "08:00", end: "09:00", tag: "출근길" },
@@ -43,6 +41,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
     else setStep((current) => current - 1);
   };
   const handleNext = () => {
+    if (step === 1 && (!situation || !job)) return;
     if (step < 3) setStep((current) => current + 1);
     else setCompleted(true);
   };

@@ -27,7 +27,7 @@ export const LearnerSituationFields = ({
     </section>
     <SelectionChipGroup
       label="희망 직무"
-      hint="하나만 골라 주세요"
+      hint="필수 · 하나만 골라 주세요"
       options={JOB_OPTIONS}
       mode="radio"
       selected={[job]}
