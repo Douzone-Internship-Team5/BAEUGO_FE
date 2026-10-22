@@ -44,7 +44,7 @@ export const TimeSlotList = ({ slots, onChange }: Props) => {
               type="button"
               aria-label={`${slot.start} 시간대 삭제`}
               onClick={() => onChange(slots.filter(({ id }) => id !== slot.id))}
-              className="flex size-11 items-center justify-center text-muted hover:text-text"
+              className="flex size-11 cursor-pointer items-center justify-center text-muted hover:text-text"
             >
               <svg
                 width="14"
@@ -85,14 +85,14 @@ export const TimeSlotList = ({ slots, onChange }: Props) => {
             </label>
           </div>
           <div className="flex justify-end gap-2 text-sm">
-            <button type="button" onClick={() => setIsAdding(false)} className="px-3 py-2 text-muted">
+            <button type="button" onClick={() => setIsAdding(false)} className="cursor-pointer px-3 py-2 text-muted">
               취소
             </button>
             <button
               type="button"
               onClick={addSlot}
               disabled={!start || !end || start >= end || slots.length >= 5}
-              className="px-3 py-2 font-medium text-accent disabled:opacity-40"
+              className="cursor-pointer px-3 py-2 font-medium text-accent disabled:cursor-not-allowed disabled:opacity-40"
             >
               시간 추가
             </button>
@@ -103,7 +103,7 @@ export const TimeSlotList = ({ slots, onChange }: Props) => {
           type="button"
           onClick={() => setIsAdding(true)}
           disabled={slots.length >= 5}
-          className="h-12 rounded-[4px] border border-dashed border-line-focus text-[13px] text-text-sub disabled:opacity-40"
+          className="h-12 cursor-pointer rounded-[4px] border border-dashed border-line-focus text-[13px] text-text-sub disabled:cursor-not-allowed disabled:opacity-40"
         >
           + 시간대 추가
         </button>

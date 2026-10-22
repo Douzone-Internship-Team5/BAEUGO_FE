@@ -7,7 +7,10 @@ interface Props {
   onToggleTopic: (topic: string) => void;
 }
 
-export const LearnerTopicFields = ({ selectedTopics, onToggleTopic }: Props) => {
+export const LearnerTopicFields = ({
+  selectedTopics,
+  onToggleTopic,
+}: Props) => {
   const [showMore, setShowMore] = useState(false);
   const visibleGroups = showMore ? TOPIC_GROUPS : TOPIC_GROUPS.slice(0, 2);
 
@@ -28,7 +31,7 @@ export const LearnerTopicFields = ({ selectedTopics, onToggleTopic }: Props) => 
         type="button"
         onClick={() => setShowMore((shown) => !shown)}
         aria-expanded={showMore}
-        className="self-start border-b border-line-focus py-1 text-[13px] text-muted"
+        className="self-start border-b border-line-focus py-1 text-[13px] text-muted cursor-pointer"
       >
         {showMore ? "다른 직무 주제 접기" : "다른 직무 주제 더 보기"}
       </button>

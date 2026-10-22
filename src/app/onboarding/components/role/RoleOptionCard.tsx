@@ -11,8 +11,8 @@ export const RoleOptionCard = ({ href, children, emphasized = false }: Props) =>
     href={href}
     className={
       emphasized
-        ? "flex h-14 items-center justify-center gap-2 rounded-[14px] bg-accent text-[15px] font-semibold text-bg transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        : "flex h-14 items-center justify-center gap-2 rounded-[14px] border border-line-focus text-[15px] font-semibold text-accent transition hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        ? "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-accent text-[15px] font-semibold text-bg transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        : "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-line-focus text-[15px] font-semibold text-accent transition hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     }
   >
     {children}

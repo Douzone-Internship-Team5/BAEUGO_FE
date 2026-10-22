@@ -34,7 +34,7 @@ export const buttonClass = ({
   fullWidth = false,
 }: Pick<Props, "variant" | "size" | "fullWidth"> = {}) =>
   cn(
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors",
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium transition-colors",
     "disabled:cursor-not-allowed disabled:opacity-40",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
     variantClass[variant],

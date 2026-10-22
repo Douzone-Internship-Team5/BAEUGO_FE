@@ -16,7 +16,7 @@ export const OnboardingComplete = ({ title, description }: Props) => (
       <p className="text-sm leading-[1.7] text-muted">{description}</p>
       <Link
         href="/"
-        className="mt-4 flex h-[52px] items-center justify-center rounded-full bg-text text-[15px] font-semibold text-bg"
+        className="mt-4 flex h-[52px] cursor-pointer items-center justify-center rounded-full bg-text text-[15px] font-semibold text-bg"
       >
         시작 화면으로
       </Link>

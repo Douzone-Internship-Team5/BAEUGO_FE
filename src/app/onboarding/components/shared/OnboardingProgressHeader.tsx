@@ -18,7 +18,7 @@ export const OnboardingProgressHeader = ({
       onBack={onBack}
       right={
         <span className="pr-3 text-xs tracking-[1px] text-muted">
-          {roleLabel} · {currentStep} / {totalSteps}
+          {roleLabel} {currentStep} / {totalSteps}
         </span>
       }
     />

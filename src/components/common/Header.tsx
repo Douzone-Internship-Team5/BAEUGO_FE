@@ -43,7 +43,7 @@ export const Header = ({
         type="button"
         aria-label="뒤로"
         onClick={onBack}
-        className="flex size-11 items-center justify-center"
+        className="flex size-11 cursor-pointer items-center justify-center"
       >
         <BackIcon />
       </button>
@@ -63,7 +63,7 @@ export const Header = ({
 );
 
 const BackLink = ({ href }: { href: string }) => (
-  <Link href={href} aria-label="뒤로" className="flex size-11 items-center justify-center">
+  <Link href={href} aria-label="뒤로" className="flex size-11 cursor-pointer items-center justify-center">
     <BackIcon />
   </Link>
 );

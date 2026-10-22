@@ -8,14 +8,15 @@ interface Props {
 
 export const LearningGoalSelector = ({ value, onChange }: Props) => (
   <fieldset className="flex flex-col gap-3">
-    <legend className="text-[15px] font-medium">하루 목표 학습 시간</legend>
     <div className="grid grid-cols-3 gap-2">
       {LEARNING_GOALS.map((minutes) => (
         <label
           key={minutes}
           className={cn(
             "flex h-16 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-[4px] border transition-colors",
-            value === minutes ? "border-accent bg-success-bg" : "border-line-strong",
+            value === minutes
+              ? "border-accent bg-success-bg"
+              : "border-line-strong",
           )}
         >
           <input

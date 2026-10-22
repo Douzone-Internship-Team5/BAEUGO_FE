@@ -32,7 +32,9 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
 
   const toggleTopic = (topic: string) => {
     setTopics((current) =>
-      current.includes(topic) ? current.filter((item) => item !== topic) : [...current, topic],
+      current.includes(topic)
+        ? current.filter((item) => item !== topic)
+        : [...current, topic],
     );
   };
 
@@ -61,7 +63,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
 
   return (
     <OnboardingStepScreen
-      roleLabel="수강자"
+      roleLabel=""
       currentStep={step}
       totalSteps={3}
       onBack={handleBack}
@@ -75,7 +77,12 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
           <>
             <OnboardingStepIntro
               step={1}
-              title={<>지금 어떤 <strong className="font-semibold">상황인가요?</strong></>}
+              title={
+                <>
+                  지금 어떤{" "}
+                  <strong className="font-semibold">상황인가요?</strong>
+                </>
+              }
               description="상황과 희망 직무에 맞는 강좌부터 보여 드릴게요."
             />
             <LearnerSituationFields
@@ -90,17 +97,30 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
           <>
             <OnboardingStepIntro
               step={2}
-              title={<>관심 있는 <strong className="font-semibold">주제를 골라 주세요</strong></>}
+              title={
+                <>
+                  관심 있는{" "}
+                  <strong className="font-semibold">주제를 골라 주세요</strong>
+                </>
+              }
               description="여러 개 골라도 돼요. 무료 OT 피드를 이 주제로 채워요."
             />
-            <LearnerTopicFields selectedTopics={topics} onToggleTopic={toggleTopic} />
+            <LearnerTopicFields
+              selectedTopics={topics}
+              onToggleTopic={toggleTopic}
+            />
           </>
         )}
         {step === 3 && (
           <>
             <OnboardingStepIntro
               step={3}
-              title={<>하루에 <strong className="font-semibold">얼마나 배울까요?</strong></>}
+              title={
+                <>
+                  하루에{" "}
+                  <strong className="font-semibold">얼마나 배울까요?</strong>
+                </>
+              }
               description="목표 시간을 채운 날은 출석으로 기록돼요. 언제든 바꿀 수 있어요."
             />
             <LearningGoalSelector value={goal} onChange={setGoal} />

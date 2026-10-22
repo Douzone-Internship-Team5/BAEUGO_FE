@@ -27,7 +27,7 @@ export const Chip = ({
       onChange?.(mode === "radio" ? true : !selected);
     }}
     className={cn(
-      "h-10 rounded-full border px-4 text-[13px] transition-colors",
+      "h-10 rounded-full border px-4 text-[13px] transition-colors cursor-pointer",
       selected
         ? "border-accent bg-success-bg font-medium text-text"
         : "border-line-strong text-text-sub hover:border-line-focus",
