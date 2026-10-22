@@ -2,7 +2,7 @@ import { LEARNING_GOALS } from "../../data/options";
 import { cn } from "@/lib/cn";
 
 interface Props {
-  value: number;
+  value: number | null;
   onChange: (value: number) => void;
 }
 

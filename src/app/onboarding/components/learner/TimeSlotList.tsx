@@ -8,8 +8,8 @@ interface Props {
 
 export const TimeSlotList = ({ slots, onChange }: Props) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [start, setStart] = useState("19:00");
-  const [end, setEnd] = useState("20:00");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
 
   const addSlot = () => {
     if (slots.length >= 5 || !start || !end || start >= end) return;
@@ -26,9 +26,13 @@ export const TimeSlotList = ({ slots, onChange }: Props) => {
   };
 
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="time-slot-heading">
+    <section
+      className="flex flex-col gap-3"
+      aria-labelledby="time-slot-heading"
+    >
       <h2 id="time-slot-heading" className="text-[15px] font-medium">
-        주로 배우는 시간 <span className="text-xs font-normal text-muted">선택</span>
+        주로 배우는 시간{" "}
+        <span className="text-xs font-normal text-muted">선택</span>
       </h2>
       <div className="flex flex-col gap-2">
         {slots.map((slot) => (
@@ -85,7 +89,11 @@ export const TimeSlotList = ({ slots, onChange }: Props) => {
             </label>
           </div>
           <div className="flex justify-end gap-2 text-sm">
-            <button type="button" onClick={() => setIsAdding(false)} className="cursor-pointer px-3 py-2 text-muted">
+            <button
+              type="button"
+              onClick={() => setIsAdding(false)}
+              className="cursor-pointer px-3 py-2 text-muted"
+            >
               취소
             </button>
             <button

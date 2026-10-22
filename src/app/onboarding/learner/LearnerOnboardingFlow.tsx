@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LEARNING_GOALS, type TimeSlot } from "../data/options";
+import { type TimeSlot } from "../data/options";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
@@ -21,7 +21,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const [situation, setSituation] = useState("");
   const [job, setJob] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
-  const [goal, setGoal] = useState<number>(LEARNING_GOALS[1]);
+  const [goal, setGoal] = useState<number | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([
     { id: "commute", start: "08:00", end: "09:00", tag: "출근길" },
     { id: "bedtime", start: "21:30", end: "22:30", tag: "자기 전" },
@@ -116,7 +116,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
               step={3}
               title={
                 <>
-                  하루에{" "}
+                  하루에
                   <strong className="font-semibold">얼마나 배울까요?</strong>
                 </>
               }
