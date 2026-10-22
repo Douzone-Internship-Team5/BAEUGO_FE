@@ -13,19 +13,19 @@ interface Props {
   initialStep?: number;
 }
 
-const initialTopics = ["업무 자동화", "엑셀"];
-
 export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
   const [step, setStep] = useState(Math.min(2, Math.max(1, initialStep)));
-  const [job, setJob] = useState("사무 생산성");
-  const [topics, setTopics] = useState(initialTopics);
+  const [job, setJob] = useState("");
+  const [topics, setTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [completed, setCompleted] = useState(false);
 
   const toggleTopic = (topic: string) => {
     setTopics((current) =>
-      current.includes(topic) ? current.filter((item) => item !== topic) : [...current, topic],
+      current.includes(topic)
+        ? current.filter((item) => item !== topic)
+        : [...current, topic],
     );
   };
 
@@ -63,7 +63,12 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
           <>
             <OnboardingStepIntro
               step={1}
-              title={<>어떤 직무를 <strong className="font-semibold">가르치나요?</strong></>}
+              title={
+                <>
+                  어떤 직무를{" "}
+                  <strong className="font-semibold">가르치나요?</strong>
+                </>
+              }
               description="강좌를 등록할 때 이 직무와 주제가 기본으로 채워져요."
             />
             <InstructorExpertiseFields
@@ -78,7 +83,12 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
           <>
             <OnboardingStepIntro
               step={2}
-              title={<>수강자에게 <strong className="font-semibold">나를 소개해 주세요</strong></>}
+              title={
+                <>
+                  수강자에게{" "}
+                  <strong className="font-semibold">나를 소개해 주세요</strong>
+                </>
+              }
               description="강좌 상세에 그대로 보여요. 검수 없이 바로 반영돼요."
             />
             <InstructorBioField value={bio} onChange={setBio} />
