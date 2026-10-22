@@ -28,11 +28,16 @@ export const OperatorShell = ({ children }: Props) => {
           </span>
           <span className="flex flex-col">
             <span className="text-sm font-semibold tracking-[2px]">BAEUGO</span>
-            <span className="mt-0.5 text-[10px] tracking-[1.5px] text-muted">OPERATOR</span>
+            <span className="mt-0.5 text-[10px] tracking-[1.5px] text-muted">
+              OPERATOR
+            </span>
           </span>
         </Link>
 
-        <nav aria-label="운영자 메뉴" className="flex gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:gap-1.5 md:p-4">
+        <nav
+          aria-label="운영자 메뉴"
+          className="flex gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:gap-1.5 md:p-4"
+        >
           <p className="hidden px-3 pb-2 pt-3 text-[10px] font-medium tracking-[1.5px] text-dim md:block">
             관리
           </p>
@@ -68,17 +73,9 @@ export const OperatorShell = ({ children }: Props) => {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-[72px] shrink-0 items-center justify-between border-b border-line px-5 md:px-8">
-          <div>
-            <p className="text-[10px] tracking-[1.5px] text-muted">BAEUGO / ADMIN</p>
-            <p className="mt-1 text-xs text-text-sub">운영자 관리</p>
-          </div>
-          <span className="flex items-center gap-2 text-xs text-muted">
-            <span className="size-1.5 rounded-full bg-success" />
-            운영 시스템
-          </span>
-        </header>
-        <main className="w-full flex-1 px-5 py-7 md:px-8 md:py-9 lg:px-10">{children}</main>
+        <main className="w-full flex-1 px-5 py-7 md:px-8 md:py-9 lg:px-10">
+          {children}
+        </main>
       </div>
     </div>
   );
