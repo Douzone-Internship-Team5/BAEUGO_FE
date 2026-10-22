@@ -1,0 +1,35 @@
+/*
+ * Tailwind v4 색 토큰. src/constants/colors.ts와 같은 값.
+ * 사용: bg-bg, bg-panel, text-muted, border-line, text-success ...
+ * globals.css에서 @import "tailwindcss"; 다음에 @import "../styles/theme.css";
+ */
+@theme {
+  --color-bg: #0E0F11;
+  --color-panel: #16171A;
+  --color-card: #1C1E22;
+  --color-selected: #22252B;
+
+  --color-line: #2A2C30;
+  --color-line-strong: #2E3035;
+  --color-line-focus: #3A3D42;
+
+  --color-text: #F2F1EC;
+  --color-text-sub: #D6D5D0;
+  --color-muted: #9A9DA3;
+  --color-dim: #8A8D93;
+
+  --color-accent: #9DB8FF;
+
+  --color-neutral: #A1A4AA;
+  --color-success: #8AA9D6;
+  --color-success-bg: #1A2130;
+  --color-success-line: #3B5275;
+  --color-success-soft-bg: #131A25;
+  --color-warning: #C9B68D;
+  --color-warning-line: #4A4332;
+  --color-warning-bg: #1B1914;
+  --color-danger: #D49A8C;
+  --color-danger-line: #5A403A;
+  --color-danger-bg: #33201C;
+  --color-on-danger: #2A0F08;
+}
