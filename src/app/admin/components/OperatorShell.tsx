@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 interface Props {
   children: ReactNode;
@@ -15,6 +16,29 @@ const navigation = [
 
 export const OperatorShell = ({ children }: Props) => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+
+    const accessToken = window.localStorage.getItem("accessToken");
+    try {
+      if (accessToken) {
+        await fetch("/api/v1/auth/logout", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+      }
+    } catch {
+      // Clear the local session even when the API is unavailable.
+    } finally {
+      window.localStorage.removeItem("accessToken");
+      router.replace("/");
+      router.refresh();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-bg text-text md:flex">
@@ -59,16 +83,16 @@ export const OperatorShell = ({ children }: Props) => {
           })}
         </nav>
 
-        <div className="hidden border-t border-line p-4 md:block">
-          <div className="flex items-center gap-3 rounded-[4px] bg-card p-3">
-            <span className="flex size-8 items-center justify-center rounded-full bg-selected text-xs font-medium text-accent">
-              관
-            </span>
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-xs font-medium">운영자 계정</span>
-              <span className="mt-0.5 text-[10px] text-muted">관리자</span>
-            </span>
-          </div>
+        <div className="border-t border-line p-3 md:p-4">
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-[13px] text-muted transition-colors hover:bg-danger-bg hover:text-danger disabled:cursor-wait disabled:opacity-60"
+          >
+            <LogoutIcon />
+            {isLoggingOut ? "로그아웃 중…" : "로그아웃"}
+          </button>
         </div>
       </aside>
 
@@ -111,3 +135,20 @@ const NavIcon = ({ name, active }: NavIconProps) => {
     </svg>
   );
 };
+
+const LogoutIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M10 17l5-5-5-5M15 12H3" />
+    <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+  </svg>
+);
