@@ -31,7 +31,7 @@ export const OnboardingStepScreen = ({
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-bg text-text font-sans antialiased">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-bg text-text font-onboarding antialiased">
       <OnboardingProgressHeader
         roleLabel={roleLabel}
         currentStep={currentStep}

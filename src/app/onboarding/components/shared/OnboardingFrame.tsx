@@ -10,7 +10,7 @@ export const OnboardingFrame = ({ children, className }: Props) => (
   <div
     className={cn(
       "mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-bg text-text",
-      "font-sans antialiased",
+      "font-onboarding antialiased",
       className,
     )}
   >
