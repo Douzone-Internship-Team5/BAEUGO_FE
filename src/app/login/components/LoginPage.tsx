@@ -35,6 +35,7 @@ export const LoginPage = ({ className = "" }: Props) => {
         email: user.email,
         name: user.name,
         profile_image: "",
+        activeMode: user.activeMode ?? user.role ?? null,
       });
       window.localStorage.setItem("accessToken", accessToken);
 

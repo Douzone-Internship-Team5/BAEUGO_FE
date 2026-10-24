@@ -17,7 +17,7 @@ interface InstructorProfile {
 }
 interface MyInfo {
   name: string;
-  activeMode: string;
+  activeMode?: string | null;
   onboarding: {
     categoryId?: number;
     jobCategory?: string;
@@ -62,9 +62,11 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
       try {
         const response = await api.get<MyInfo>({ endpoint: "/users/me", signal: controller.signal });
         const data = response?.data;
-        if (!data || data.activeMode !== "INSTRUCTOR") {
+        const activeMode = data?.activeMode ?? useAuthStore.getState().user?.activeMode;
+        if (activeMode && activeMode !== "INSTRUCTOR") {
           throw new Error("강사 모드에서만 강사 정보를 수정할 수 있습니다.");
         }
+        if (!data) throw new Error("강사 정보를 불러오지 못했습니다.");
         setProfile({
           name: data.name ?? "",
           categoryId: data.onboarding?.categoryId ?? 0,
