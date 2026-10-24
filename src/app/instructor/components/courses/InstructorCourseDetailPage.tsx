@@ -12,7 +12,7 @@ export const InstructorCourseDetailPage = ({ course }: Props) => {
   return <div className="min-h-dvh pb-24 md:pb-8">
     <InstructorScreenHeader title="강좌 편집 · 공개" backHref="/instructor" />
     <main className="mx-auto max-w-4xl px-4 pt-5 md:px-8 md:pt-8">
-      <div className="flex items-center justify-between gap-3"><div><p className="hidden text-[10px] tracking-[1.4px] text-muted md:block">COURSE STUDIO</p><h1 className="mt-1 text-xl font-medium leading-7 md:mt-2 md:text-2xl">{course.title}</h1><p className="mt-1.5 text-[11px] text-muted">{course.category} · {course.topic} · {course.priceKrw.toLocaleString("ko-KR")}원</p></div><CourseStatusBadge status={course.status} /></div>
+      <div className="flex items-center justify-between gap-3"><div><Link href="/instructor" className="mb-2 hidden w-fit cursor-pointer items-center gap-1 text-xs text-muted transition hover:text-text md:flex"><span aria-hidden="true">←</span> 내 강좌</Link><h1 className="text-xl font-medium leading-7 md:text-2xl">{course.title}</h1><p className="mt-1.5 text-[11px] text-muted">{course.category} · {course.topic} · {course.priceKrw.toLocaleString("ko-KR")}원</p></div><CourseStatusBadge status={course.status} /></div>
       {course.status === "OPERATOR_HIDDEN" && <p className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">운영자가 비공개 처리한 강좌입니다. 사유를 확인한 후 콘텐츠를 수정해 주세요.</p>}
 
       <Card padding="md" className="mt-5 border border-line">
