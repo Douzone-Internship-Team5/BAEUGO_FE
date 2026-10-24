@@ -1,18 +1,19 @@
-import Link from "next/link";
-
 interface Props {
-  href: string;
+  onClick: () => void;
   children: string;
   emphasized?: boolean;
+  disabled?: boolean;
 }
 
-export const RoleOptionCard = ({ href, children, emphasized = false }: Props) => (
-  <Link
-    href={href}
+export const RoleOptionCard = ({ onClick, children, emphasized = false, disabled }: Props) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
     className={
       emphasized
-        ? "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-accent text-[15px] font-semibold text-bg transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        : "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-line-focus text-[15px] font-semibold text-accent transition hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        ? "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-accent text-[15px] font-semibold text-bg transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
+        : "flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-line-focus text-[15px] font-semibold text-accent transition hover:bg-panel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
     }
   >
     {children}
@@ -29,5 +30,5 @@ export const RoleOptionCard = ({ href, children, emphasized = false }: Props) =>
     >
       <path d="m9 5 7 7-7 7" />
     </svg>
-  </Link>
+  </button>
 );

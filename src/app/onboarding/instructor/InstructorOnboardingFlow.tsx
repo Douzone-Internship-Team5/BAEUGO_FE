@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/_lib/fetcher";
+import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
+import { getJobCategory, getSelectedTopicIds } from "../data/options";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
@@ -15,6 +18,7 @@ interface Props {
 
 export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
+  const saveMutation = useSaveOnboarding();
   const [step, setStep] = useState(Math.min(2, Math.max(1, initialStep)));
   const [job, setJob] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
@@ -29,14 +33,33 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
     );
   };
 
+  const handleJobChange = (value: string) => {
+    setJob(value);
+    setTopics([]);
+  };
+
   const handleBack = () => {
     if (step === 1) router.push("/onboarding");
     else setStep(1);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) setStep(2);
-    else setCompleted(true);
+    else {
+      const category = getJobCategory(job);
+      if (!category) return;
+
+      try {
+        await saveMutation.mutateAsync({
+          jobCategory: category.code,
+          lectureTopicIds: getSelectedTopicIds(job, topics),
+          bio: bio.trim(),
+        });
+        setCompleted(true);
+      } catch {
+        // The shared footer shows the mutation error.
+      }
+    }
   };
 
   if (completed) {
@@ -58,7 +81,9 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
       onBack={handleBack}
       onSubmit={handleNext}
       buttonLabel={step === 2 ? "강사로 시작하기" : "다음"}
-      disabled={step === 1 ? topics.length === 0 : bio.trim().length < 5}
+      disabled={step === 1 ? !job || topics.length === 0 : bio.trim().length < 5}
+      loading={saveMutation.isPending}
+      error={saveMutation.error instanceof ApiError ? saveMutation.error.message : saveMutation.error?.message}
     >
       <div className="flex flex-col gap-7">
         {step === 1 && (
@@ -76,7 +101,7 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
             <InstructorExpertiseFields
               job={job}
               topics={topics}
-              onJobChange={setJob}
+              onJobChange={handleJobChange}
               onToggleTopic={toggleTopic}
             />
           </>
