@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/_lib/fetcher";
+import { getErrorMessage } from "@/_lib/fetcher";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { getJobCategory, getSelectedTopicIds } from "../data/options";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
@@ -83,7 +83,7 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
       buttonLabel={step === 2 ? "강사로 시작하기" : "다음"}
       disabled={step === 1 ? !job || topics.length === 0 : bio.trim().length < 5}
       loading={saveMutation.isPending}
-      error={saveMutation.error instanceof ApiError ? saveMutation.error.message : saveMutation.error?.message}
+      error={saveMutation.error ? getErrorMessage(saveMutation.error, "온보딩 저장에 실패했습니다.") : undefined}
     >
       <div className="flex flex-col gap-7">
         {step === 1 && (
