@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { ReactNode } from "react";
 import { OperatorShell } from "./components/OperatorShell";
+import AdminQueryProvider from "./AdminQueryProvider";
 
 interface Props {
   children: ReactNode;
@@ -9,7 +10,9 @@ interface Props {
 export default function AdminLayout({ children }: Props) {
   return (
     <Suspense fallback={<AdminShellFallback />}>
-      <OperatorShell>{children}</OperatorShell>
+      <AdminQueryProvider>
+        <OperatorShell>{children}</OperatorShell>
+      </AdminQueryProvider>
     </Suspense>
   );
 }
