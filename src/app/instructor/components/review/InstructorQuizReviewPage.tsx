@@ -22,16 +22,18 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
   const regenerateMutation = useRegenerateInstructorQuiz(courseId, sectionId ?? 0);
   const [draft, setDraft] = useState<{ key: string; questions: InstructorQuestionDto[] } | null>(null);
   const [notice, setNotice] = useState("");
+  const [validationAlert, setValidationAlert] = useState("");
   const backHref = `/instructor/courses/${rawCourseId}`;
   const draftKey = sectionId === undefined ? "final" : String(sectionId);
   const questions = draft?.key === draftKey ? draft.questions : quizQuery.data?.questions ?? [];
   const updateQuestions = (updater: (current: InstructorQuestionDto[]) => InstructorQuestionDto[]) => {
     setDraft((current) => ({ key: draftKey, questions: updater(current?.key === draftKey ? current.questions : quizQuery.data?.questions ?? []) }));
+    setNotice("");
+    setValidationAlert("");
   };
 
   const updateQuestion = (index: number, update: Partial<InstructorQuestionDto>) => {
     updateQuestions((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, ...update } : question));
-    setNotice("");
   };
   const handleSave = async () => {
     const hasValidQuestionCount = questions.length >= 3 && questions.length <= 5;
@@ -43,20 +45,21 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
     );
 
     if (!hasValidQuestionCount || !hasValidQuestionStructure) {
-      window.alert("퀴즈는 3~5문항이어야 하며, 각 문항의 보기(choices)는 정확히 4개, 정답 번호(correctChoiceNo)는 1~4여야 합니다.");
+      setValidationAlert("퀴즈는 3~5문항이어야 하며, 각 문항의 보기(choices)는 정확히 4개, 정답 번호(correctChoiceNo)는 1~4여야 합니다.");
       return;
     }
     if (questions.some((question) => !question.explanation.trim())) {
-      window.alert("모든 문항의 해설을 입력해 주세요.");
+      setValidationAlert("모든 문항의 해설을 입력해 주세요.");
       return;
     }
 
+    setValidationAlert("");
     try {
       const saved = await saveMutation.mutateAsync(questions.map((question, index) => ({ ...question, orderNo: index + 1 })));
       setDraft({ key: draftKey, questions: saved.questions });
       router.push(backHref);
     } catch (error) {
-      window.alert(getErrorMessage(error, "퀴즈 저장에 실패했습니다."));
+      setValidationAlert(getErrorMessage(error, "퀴즈 저장에 실패했습니다."));
       setNotice("");
     }
   };
@@ -90,6 +93,7 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
         {questions.length < 5 && <button type="button" onClick={addQuestion} className="mt-3 h-10 w-full cursor-pointer rounded-[4px] border border-dashed border-line-strong text-xs text-muted">＋ 문항 추가</button>}
       </>}
       {regenerateMutation.error && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{regenerateMutation.error.message}</p>}
+      {validationAlert && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{validationAlert}</p>}
       {notice && <p role="status" className="mt-4 rounded border border-success-line bg-success-soft-bg p-3 text-xs text-success">{notice}</p>}
     </main><div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg/95 p-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur"><button type="button" onClick={() => void handleSave()} disabled={saveMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-3xl">{saveMutation.isPending ? "저장 중…" : "저장하고 검수 완료"}</button></div>
   </div>;
