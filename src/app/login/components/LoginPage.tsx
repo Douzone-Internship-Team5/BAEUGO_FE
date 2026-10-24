@@ -47,11 +47,17 @@ export const LoginPage = ({ className = "" }: Props) => {
         router.replace("/");
       }
     } catch (requestError) {
-      setError(
-        requestError instanceof ApiError
-          ? requestError.message
-          : "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-      );
+      if (requestError instanceof ApiError) {
+        setError(requestError.message);
+      } else if (requestError instanceof TypeError) {
+        setError("서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인해 주세요.");
+      } else {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
