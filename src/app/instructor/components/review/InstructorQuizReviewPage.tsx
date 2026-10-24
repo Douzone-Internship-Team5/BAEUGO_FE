@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ApiError } from "@/_lib/fetcher";
 import useInstructorCourse from "@/api/instructor/useInstructorCourse";
 import useInstructorQuiz from "@/api/instructor/useInstructorQuiz";
@@ -12,6 +13,7 @@ import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 interface Props { courseId: string; sectionId?: string }
 
 export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: initialSectionId }: Props) => {
+  const router = useRouter();
   const courseId = Number(rawCourseId);
   const [sectionId, setSectionId] = useState<number | undefined>(() => initialSectionId && initialSectionId !== "final" ? Number(initialSectionId) : undefined);
   const courseQuery = useInstructorCourse(courseId);
@@ -35,7 +37,7 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
     try {
       const saved = await saveMutation.mutateAsync(questions.map((question, index) => ({ ...question, orderNo: index + 1 })));
       setDraft({ key: draftKey, questions: saved.questions });
-      setNotice("퀴즈를 저장하고 검수 완료 처리했습니다.");
+      router.push(backHref);
     } catch {
       setNotice("");
     }
