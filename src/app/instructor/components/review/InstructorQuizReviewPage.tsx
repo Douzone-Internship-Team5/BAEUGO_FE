@@ -34,6 +34,19 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
     setNotice("");
   };
   const handleSave = async () => {
+    const hasValidQuestionCount = questions.length >= 3 && questions.length <= 5;
+    const hasValidQuestionStructure = questions.every((question) =>
+      question.choices.length === 4 &&
+      Number.isInteger(question.correctChoiceNo) &&
+      question.correctChoiceNo >= 1 &&
+      question.correctChoiceNo <= 4,
+    );
+
+    if (!hasValidQuestionCount || !hasValidQuestionStructure) {
+      window.alert("퀴즈는 3~5문항이어야 하며, 각 문항의 보기(choices)는 정확히 4개, 정답 번호(correctChoiceNo)는 1~4여야 합니다.");
+      return;
+    }
+
     try {
       const saved = await saveMutation.mutateAsync(questions.map((question, index) => ({ ...question, orderNo: index + 1 })));
       setDraft({ key: draftKey, questions: saved.questions });
@@ -73,6 +86,6 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
       </>}
       {(saveMutation.error || regenerateMutation.error) && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{(saveMutation.error ?? regenerateMutation.error)?.message}</p>}
       {notice && <p role="status" className="mt-4 rounded border border-success-line bg-success-soft-bg p-3 text-xs text-success">{notice}</p>}
-    </main><div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg/95 p-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur"><button type="button" onClick={() => void handleSave()} disabled={saveMutation.isPending || questions.length < 3 || questions.length > 5} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-3xl">{saveMutation.isPending ? "저장 중…" : "저장하고 검수 완료"}</button></div>
+    </main><div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg/95 p-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur"><button type="button" onClick={() => void handleSave()} disabled={saveMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-3xl">{saveMutation.isPending ? "저장 중…" : "저장하고 검수 완료"}</button></div>
   </div>;
 };
