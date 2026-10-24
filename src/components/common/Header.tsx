@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 interface Props {
   title?: ReactNode;
@@ -51,11 +51,22 @@ export const Header = ({
     {showLogo ? (
       <div className={cn("flex items-baseline gap-2", !backHref && "pl-2")}>
         <span className="text-[15px] font-semibold tracking-[4px]">BAEUGO</span>
-        {subLabel && <span className="text-[10px] tracking-[2px] text-muted">{subLabel}</span>}
+        {subLabel && (
+          <span className="text-[10px] tracking-[2px] text-muted">
+            {subLabel}
+          </span>
+        )}
       </div>
     ) : (
       title && (
-        <h1 className={cn("truncate text-[15px] font-medium", !backHref && "pl-2")}>{title}</h1>
+        <h1
+          className={cn(
+            "truncate text-[15px] font-medium",
+            !backHref && "pl-2",
+          )}
+        >
+          {title}
+        </h1>
       )
     )}
     {right && <div className="ml-auto flex items-center">{right}</div>}
@@ -63,7 +74,11 @@ export const Header = ({
 );
 
 const BackLink = ({ href }: { href: string }) => (
-  <Link href={href} aria-label="뒤로" className="flex size-11 cursor-pointer items-center justify-center">
+  <Link
+    href={href}
+    aria-label="뒤로"
+    className="flex size-11 cursor-pointer items-center justify-center"
+  >
     <BackIcon />
   </Link>
 );

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 interface Props {
   label: string;
@@ -18,7 +18,9 @@ export const RadioCardGroup = ({ label, options, value, onChange }: Props) => (
           className={cn(
             "flex h-[52px] cursor-pointer items-center justify-between rounded-[4px] border px-4 text-sm transition-colors",
             "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent",
-            selected ? "border-accent bg-success-bg" : "border-line-strong bg-transparent",
+            selected
+              ? "border-accent bg-success-bg"
+              : "border-line-strong bg-transparent",
           )}
         >
           <input

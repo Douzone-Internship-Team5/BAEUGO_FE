@@ -1,5 +1,5 @@
 import { LEARNING_GOALS } from "../../data/options";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 interface Props {
   value: number | null;

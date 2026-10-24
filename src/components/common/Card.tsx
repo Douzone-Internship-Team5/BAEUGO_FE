@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef } from "react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 type CardTone = "panel" | "card" | "outline";
 type CardPadding = "none" | "sm" | "md" | "lg";
@@ -23,6 +23,19 @@ const paddingClass: Record<CardPadding, string> = {
 };
 
 /** 모서리 4px 기본 카드 */
-export const Card = ({ tone = "panel", padding = "md", className, ...rest }: Props) => (
-  <div className={cn("rounded-[4px]", toneClass[tone], paddingClass[padding], className)} {...rest} />
+export const Card = ({
+  tone = "panel",
+  padding = "md",
+  className,
+  ...rest
+}: Props) => (
+  <div
+    className={cn(
+      "rounded-[4px]",
+      toneClass[tone],
+      paddingClass[padding],
+      className,
+    )}
+    {...rest}
+  />
 );

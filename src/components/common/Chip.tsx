@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef } from "react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 interface Props extends Omit<ComponentPropsWithRef<"button">, "onChange"> {
   selected?: boolean;

@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef, ReactNode } from "react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 type ButtonVariant = "primary" | "accent" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";

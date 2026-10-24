@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/_lib/cn";
 
 interface Props {
   children: ReactNode;
