@@ -230,7 +230,9 @@ const StatusBadge = ({ status }: StatusBadgeProps) => <CourseStatusBadge status=
 const formatKrw = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 
 const formatDate = (value: string) => {
+  if (!value) return "—";
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
     .format(date)
     .replaceAll(". ", ".")
