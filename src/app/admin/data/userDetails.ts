@@ -15,7 +15,7 @@ export interface AdminUserDetail {
         jobCategory: string;
         lectureTopics: string[];
         bio: string;
-      };
+      } | null;
   learningSummary?: {
     inProgressCount: number;
     completedCount: number;

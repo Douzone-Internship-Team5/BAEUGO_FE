@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ADMIN_USERS } from "../../data/users";
+import { useState } from "react";
+import useAdminUsers from "@/api/admin/users/useAdminUsers";
 import type { AdminUser, MemberRole } from "../../data/users";
 
 type RoleFilter = "ALL" | MemberRole;
@@ -12,22 +12,16 @@ export const MemberListPage = () => {
   const [role, setRole] = useState<RoleFilter>("ALL");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-
-  const filteredUsers = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
-    return ADMIN_USERS.filter((user) => {
-      const matchesRole = role === "ALL" || user.role === role;
-      const matchesQuery =
-        !normalizedQuery ||
-        user.name.toLocaleLowerCase("ko-KR").includes(normalizedQuery) ||
-        user.email.toLocaleLowerCase("ko-KR").includes(normalizedQuery);
-      return matchesRole && matchesQuery;
-    });
-  }, [query, role]);
-
-  const pageCount = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const visibleUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const usersQuery = useAdminUsers({ q: query.trim() || undefined, role: role === "ALL" ? undefined : role, page, size: PAGE_SIZE });
+  const users = usersQuery.data?.items.map((user) => ({
+    ...user,
+    accountType: "MEMBER" as const,
+    role: user.role ?? user.activeMode ?? "LEARNER",
+    activeMode: user.activeMode ?? user.role ?? "LEARNER",
+  })) ?? [];
+  const total = usersQuery.data?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = page;
 
   const updateFilter = (update: () => void) => {
     update();
@@ -43,7 +37,7 @@ export const MemberListPage = () => {
           <p className="mt-2 text-sm text-muted">수강자와 강사의 계정 및 이용 현황을 확인합니다.</p>
         </div>
         <div className="flex items-center gap-2 rounded-[4px] border border-line bg-panel px-3.5 py-2.5 text-xs text-muted">
-          전체 <strong className="ml-1 text-sm font-semibold text-text">{filteredUsers.length}</strong>명
+          전체 <strong className="ml-1 text-sm font-semibold text-text">{total}</strong>명
         </div>
       </div>
 
@@ -73,13 +67,17 @@ export const MemberListPage = () => {
         </label>
       </div>
 
-      <MemberTable users={visibleUsers} />
+      {usersQuery.isError ? (
+        <p role="alert" className="rounded-[4px] border border-danger-line bg-danger-bg p-5 text-sm text-danger">회원 목록을 불러오지 못했습니다. {usersQuery.error.message}</p>
+      ) : usersQuery.isPending ? (
+        <div role="status" className="rounded-[4px] border border-line bg-panel p-12 text-center text-sm text-muted">회원 목록을 불러오는 중…</div>
+      ) : <MemberTable users={users} />}
 
       <div className="flex flex-col gap-3 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {filteredUsers.length === 0
+          {total === 0
             ? "검색 결과가 없습니다."
-            : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredUsers.length)}명 표시 / 총 ${filteredUsers.length}명`}
+            : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, total)}명 표시 / 총 ${total}명`}
         </p>
         <div className="flex items-center gap-1" aria-label="페이지 이동">
           <button
