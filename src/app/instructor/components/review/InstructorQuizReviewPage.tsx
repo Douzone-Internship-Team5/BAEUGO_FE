@@ -46,6 +46,10 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
       window.alert("퀴즈는 3~5문항이어야 하며, 각 문항의 보기(choices)는 정확히 4개, 정답 번호(correctChoiceNo)는 1~4여야 합니다.");
       return;
     }
+    if (questions.some((question) => !question.explanation.trim())) {
+      window.alert("모든 문항의 해설을 입력해 주세요.");
+      return;
+    }
 
     try {
       const saved = await saveMutation.mutateAsync(questions.map((question, index) => ({ ...question, orderNo: index + 1 })));
