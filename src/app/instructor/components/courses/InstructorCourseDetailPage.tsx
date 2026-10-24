@@ -33,7 +33,7 @@ export const InstructorCourseDetailPage = ({ course }: Props) => {
       </section>
       <p className="mt-6 text-[10px] leading-5 text-dim">화면 확인용 예시 데이터입니다. 공개 및 저장 동작은 API 연동 후 활성화됩니다.</p>
     </main>
-    <div className="fixed inset-x-0 bottom-[58px] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0"><button type="button" disabled className="h-11 w-full cursor-not-allowed rounded-[4px] bg-accent text-xs font-medium text-bg opacity-50 md:max-w-sm">{completed === course.publishRequirements.length ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button></div>
+    <div className="fixed inset-x-0 bottom-[58px] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0"><button type="button" disabled className="h-11 w-full cursor-not-allowed rounded-[4px] bg-accent text-xs font-medium text-bg opacity-50 md:mx-auto md:block md:max-w-sm">{completed === course.publishRequirements.length ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button></div>
     <InstructorMobileNav active="courses" />
   </div>;
 };
