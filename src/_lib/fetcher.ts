@@ -1,32 +1,50 @@
 import { useAuthStore } from "@/app/login/store/useAuthStore";
-import type { ApiErrorResponse, ApiResponse } from "@/types/api";
+import type { ApiErrorFields, ApiErrorResponse, ApiResponse } from "@/types/api";
 import type { ApiBody, ApiDeleteOptions, ApiGetOptions, ApiRequestOptions } from "@/types/fetcher";
 
 const API_VERSION_PATH = "/api/v1";
 
-export class ApiError<TFields = Record<string, string[]>> extends Error {
+export class ApiError<TFields = ApiErrorFields> extends Error {
   readonly status: number;
   readonly code: string;
   readonly fields?: TFields;
+  readonly missing?: string[];
 
   constructor({
     status,
     code,
     message,
     fields,
+    missing,
   }: {
     status: number;
     code: string;
     message: string;
     fields?: TFields;
+    missing?: string[];
   }) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.fields = fields;
+    this.missing = missing;
   }
 }
+
+/** 화면에 보여줄 에러 문구. 필드 오류가 있으면 "입력값을 확인해 주세요." 대신 실제 사유를 보여준다. */
+export const getErrorMessage = (error: unknown, fallback = "요청을 처리하지 못했습니다.") => {
+  if (error instanceof ApiError) {
+    const fieldMessages = error.fields
+      ? Object.values(error.fields as Record<string, unknown>).filter(
+          (value): value is string => typeof value === "string" && value.length > 0,
+        )
+      : [];
+    return fieldMessages.length > 0 ? fieldMessages.join(" ") : error.message;
+  }
+  if (error instanceof TypeError) return "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.";
+  return error instanceof Error && error.message ? error.message : fallback;
+};
 
 const getApiUrl = (endpoint: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_PROXY_URL?.replace(/\/+$/, "");
@@ -72,6 +90,7 @@ const createApiError = (status: number, payload: unknown): ApiError => {
       (typeof payload === "string" ? payload : undefined) ??
       `Request failed with status ${status}`,
     fields: detail?.fields,
+    missing: detail?.missing,
   });
 };
 
