@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { AiStatusBadge, Card, CourseStatusBadge } from "@/components/common";
 import useInstructorCourse from "@/api/instructor/useInstructorCourse";
@@ -10,10 +11,12 @@ import { ApiError } from "@/_lib/fetcher";
 import type { InstructorCourseDetail } from "../../data/courses";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
+import { StartEditingConfirmDialog } from "./StartEditingConfirmDialog";
 
 interface Props { courseId: number }
 
 export const InstructorCourseDetailPage = ({ courseId }: Props) => {
+  const [showStartEditingConfirm, setShowStartEditingConfirm] = useState(false);
   const courseQuery = useInstructorCourse(courseId);
   const statusMutation = useInstructorCourseStatus(courseId);
   if (courseQuery.isPending) return <PageMessage>강좌 정보를 불러오는 중입니다.</PageMessage>;
@@ -28,12 +31,20 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
       // Mutation errors are displayed inline.
     }
   };
+  const handleStartEditing = async () => {
+    try {
+      await statusMutation.mutateAsync("EDITING");
+      setShowStartEditingConfirm(false);
+    } catch {
+      // Mutation errors are displayed inline.
+    }
+  };
   return <div className="min-h-dvh pb-[calc(9.5rem+env(safe-area-inset-bottom))] md:pb-8">
     <InstructorScreenHeader title="강좌 편집 · 공개" backHref="/instructor" />
     <main className="mx-auto max-w-4xl px-4 pt-5 md:px-8 md:pt-8">
       <div className="flex items-center justify-between gap-3"><div><Link href="/instructor" className="mb-2 hidden w-fit cursor-pointer items-center gap-1 text-xs text-muted transition hover:text-text md:flex"><span aria-hidden="true">←</span> 내 강좌</Link><h1 className="text-xl font-medium leading-7 md:text-2xl">{course.title}</h1><p className="mt-1.5 text-[11px] text-muted">{course.category} · {course.topic} · {course.priceKrw.toLocaleString("ko-KR")}원</p></div><CourseStatusBadge status={course.status} /></div>
       {course.status === "OPERATOR_HIDDEN" && <p className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">운영자가 비공개 처리한 강좌입니다. 사유를 확인한 후 콘텐츠를 수정해 주세요.</p>}
-      {statusMutation.error && <p role="alert" className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{statusMutation.error instanceof ApiError ? statusMutation.error.message : "강좌 공개에 실패했습니다."}</p>}
+      {statusMutation.error && <p role="alert" className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{statusMutation.error instanceof ApiError ? statusMutation.error.message : "강좌 상태 변경에 실패했습니다."}</p>}
 
       <Card padding="md" className="mt-5 border border-line">
         <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] tracking-[1px] text-muted">공개 준비</p><h2 className="mt-1 text-sm font-medium">필수 항목을 확인해 주세요</h2></div><strong className="text-sm tabular-nums text-accent">{completed}/{course.publishRequirements.length}</strong></div>
@@ -52,7 +63,16 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
         <ContentCard title="종합 퀴즈" subtitle={`${course.lessonCount}개 영상 대상`} quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=final`} quizStatus={course.finalQuiz} />
       </section>
     </main>
-    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0"><button type="button" onClick={() => void handlePublish()} disabled={!canPublish || statusMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-sm">{statusMutation.isPending ? "공개 처리 중…" : canPublish ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button></div>
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0">
+      {course.status === "PUBLISHED" ? (
+        <button type="button" onClick={() => setShowStartEditingConfirm(true)} disabled={statusMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] border border-line-strong bg-panel text-xs font-medium text-text disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-sm">수정 시작</button>
+      ) : course.status === "OPERATOR_HIDDEN" ? (
+        <p className="mx-auto max-w-sm rounded-[4px] border border-danger-line bg-danger-bg px-3 py-3 text-center text-xs text-danger">운영자 검토가 완료된 후 수정할 수 있습니다.</p>
+      ) : (
+        <button type="button" onClick={() => void handlePublish()} disabled={!canPublish || statusMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-sm">{statusMutation.isPending ? "공개 처리 중…" : canPublish ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button>
+      )}
+    </div>
+    <StartEditingConfirmDialog open={showStartEditingConfirm} isPending={statusMutation.isPending} onCancel={() => setShowStartEditingConfirm(false)} onConfirm={() => void handleStartEditing()} />
     <InstructorMobileNav active="courses" />
   </div>;
 };
