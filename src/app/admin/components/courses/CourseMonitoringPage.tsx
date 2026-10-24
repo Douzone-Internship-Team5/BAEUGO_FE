@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import type { CourseStatus } from "@/constants/colors";
-import { ADMIN_COURSES, JOB_CATEGORIES } from "../../data/courses";
+import { JOB_CATEGORIES } from "../../data/courses";
 import type { AdminCourse } from "../../data/courses";
+import useAdminCourses from "@/api/admin/courses/useAdminCourses";
 
-type StatusFilter = "ALL" | "PUBLISHED" | "OPERATOR_HIDDEN";
+type StatusFilter = "ALL" | "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN";
 type SortOption = "recent" | "enrollments";
 
 const PAGE_SIZE = 5;
@@ -19,29 +20,29 @@ export const CourseMonitoringPage = () => {
   const [sort, setSort] = useState<SortOption>("recent");
   const [page, setPage] = useState(1);
 
-  const filteredCourses = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
-    return ADMIN_COURSES.filter((course) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        course.title.toLocaleLowerCase("ko-KR").includes(normalizedQuery) ||
-        course.instructorName.toLocaleLowerCase("ko-KR").includes(normalizedQuery);
-      const matchesStatus = status === "ALL" || course.status === status;
-      const matchesCategory = categoryId === "ALL" || String(course.categoryId) === categoryId;
-      return matchesQuery && matchesStatus && matchesCategory;
-    }).sort((left, right) =>
-      sort === "recent"
-        ? new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime()
-        : right.enrollmentCount - left.enrollmentCount,
-    );
-  }, [categoryId, query, sort, status]);
-
-  const pageCount = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const visibleCourses = filteredCourses.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const coursesQuery = useAdminCourses({
+    q: query.trim() || undefined,
+    status: status === "ALL" ? undefined : status,
+    sort,
+    categoryId: categoryId === "ALL" ? undefined : Number(categoryId),
+    page,
+    size: PAGE_SIZE,
+  });
+  const visibleCourses: AdminCourse[] = coursesQuery.data?.items.map((course) => ({
+    courseId: course.courseId,
+    title: course.title,
+    instructorName: course.instructorName,
+    categoryId: course.categoryId,
+    jobCategory: course.jobCategory,
+    status: course.status,
+    priceKrw: course.priceKrw,
+    enrollmentCount: course.enrollmentCount,
+    publishedAt: course.publishedAt ?? "",
+    closedReason: course.closedReason ?? undefined,
+  })) ?? [];
+  const total = coursesQuery.data?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = page;
 
   const updateFilter = (update: () => void) => {
     update();
@@ -54,10 +55,10 @@ export const CourseMonitoringPage = () => {
         <div>
           <p className="text-[11px] font-medium tracking-[1.5px] text-accent">COURSE MANAGEMENT</p>
           <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.5px]">강좌 모니터링</h1>
-          <p className="mt-2 text-sm text-muted">공개 중이거나 운영자에 의해 비공개된 강좌를 확인합니다.</p>
+          <p className="mt-2 text-sm text-muted">공개 이력이 있는 강좌의 정보와 운영 상태를 확인합니다.</p>
         </div>
         <div className="flex items-center gap-2 rounded-[4px] border border-line bg-panel px-3.5 py-2.5 text-xs text-muted">
-          전체 <strong className="ml-1 text-sm font-semibold text-text">{filteredCourses.length}</strong>개
+          전체 <strong className="ml-1 text-sm font-semibold text-text">{total}</strong>개
         </div>
       </div>
 
@@ -83,6 +84,7 @@ export const CourseMonitoringPage = () => {
             >
               <option value="ALL">전체 상태</option>
               <option value="PUBLISHED">공개 중</option>
+              <option value="EDITING">수정 중</option>
               <option value="OPERATOR_HIDDEN">운영자 비공개</option>
             </select>
           </label>
@@ -113,13 +115,17 @@ export const CourseMonitoringPage = () => {
         </div>
       </div>
 
-      <CourseTable courses={visibleCourses} />
+      {coursesQuery.isError ? (
+        <p role="alert" className="rounded-[4px] border border-danger-line bg-danger-bg p-5 text-sm text-danger">강좌 목록을 불러오지 못했습니다. {coursesQuery.error.message}</p>
+      ) : coursesQuery.isPending ? (
+        <div role="status" className="rounded-[4px] border border-line bg-panel p-12 text-center text-sm text-muted">강좌 목록을 불러오는 중…</div>
+      ) : <CourseTable courses={visibleCourses} />}
 
       <div className="flex flex-col gap-3 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {filteredCourses.length === 0
+          {total === 0
             ? "검색 결과가 없습니다."
-            : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredCourses.length)}개 표시 / 총 ${filteredCourses.length}개`}
+            : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, total)}개 표시 / 총 ${total}개`}
         </p>
         <div className="flex items-center gap-1" aria-label="페이지 이동">
           <button
@@ -216,7 +222,7 @@ const CourseRow = ({ course }: CourseRowProps) => (
 );
 
 interface StatusBadgeProps {
-  status: Extract<CourseStatus, "PUBLISHED" | "OPERATOR_HIDDEN">;
+  status: Extract<CourseStatus, "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN">;
 }
 
 const StatusBadge = ({ status }: StatusBadgeProps) => <CourseStatusBadge status={status} />;

@@ -34,9 +34,9 @@ export interface ReviewQuestion {
 export interface ReviewQuiz {
   quizId: number;
   quizType: "UNIT" | "FINAL";
-  aiStatus: "COMPLETED" | null;
-  reviewedBy: number;
-  reviewedAt: string;
+  aiStatus: string | null;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
   questions: ReviewQuestion[];
 }
 
@@ -45,7 +45,7 @@ export interface ReviewSection {
   title: string;
   sortOrder: number;
   videos: ReviewVideo[];
-  unitQuiz: ReviewQuiz;
+  unitQuiz: ReviewQuiz | null;
 }
 
 export interface AdminCourseDetail {
@@ -61,9 +61,9 @@ export interface AdminCourseDetail {
   };
   totalLessonDurationSeconds: number;
   totalLessonCount: number;
-  otVideo: ReviewVideo;
+  otVideo: ReviewVideo | null;
   sections: ReviewSection[];
-  finalQuiz: ReviewQuiz;
+  finalQuiz: ReviewQuiz | null;
 }
 
 const sampleTranscript: TranscriptSegment[] = [

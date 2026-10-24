@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
+import useAdminCourseUnpublish from "@/api/admin/courses/useAdminCourseUnpublish";
 import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "../../data/courseDetails";
 
 interface Props {
@@ -14,18 +15,24 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [notice, setNotice] = useState("");
   const { course } = detail;
+  const unpublishMutation = useAdminCourseUnpublish(course.courseId);
 
-  const handleUnpublish = (reason: string) => {
-    setDetail((current) => ({
-      ...current,
-      course: {
-        ...current.course,
-        status: "OPERATOR_HIDDEN",
-        closedReason: reason,
-      },
-    }));
-    setIsDialogOpen(false);
-    setNotice("강좌를 비공개 처리했습니다.");
+  const handleUnpublish = async (reason: string) => {
+    try {
+      const result = await unpublishMutation.mutateAsync({ reason });
+      setDetail((current) => ({
+        ...current,
+        course: {
+          ...current.course,
+          status: result.status,
+          closedReason: result.closedReason,
+        },
+      }));
+      setIsDialogOpen(false);
+      setNotice("강좌를 비공개 처리했습니다.");
+    } catch {
+      setNotice("강좌 비공개 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   };
 
   return (
@@ -41,7 +48,7 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
           </div>
           <p className="mt-2 text-sm text-muted">강좌 정보와 공개 콘텐츠를 확인합니다.</p>
         </div>
-        {course.status === "PUBLISHED" && (
+        {(course.status === "PUBLISHED" || course.status === "EDITING") && (
           <button
             type="button"
             onClick={() => setIsDialogOpen(true)}
@@ -103,7 +110,7 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
           <SectionEyebrow>CONTENT REVIEW</SectionEyebrow>
           <h2 className="mt-2 text-lg font-semibold">강의 콘텐츠</h2>
         </div>
-        <VideoReviewCard video={detail.otVideo} label="무료 OT" />
+        {detail.otVideo && <VideoReviewCard video={detail.otVideo} label="무료 OT" />}
         {detail.sections.map((section) => (
           <div key={section.sectionId} className="flex flex-col gap-3">
             <div className="flex items-center gap-3 pt-3">
@@ -111,14 +118,14 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
               <h3 className="text-sm font-medium">{section.title}</h3>
             </div>
             {section.videos.map((video) => <VideoReviewCard key={video.videoId} video={video} label="학습 영상" />)}
-            <QuizReviewCard quiz={section.unitQuiz} title={`${section.title} 확인 퀴즈`} />
+            {section.unitQuiz && <QuizReviewCard quiz={section.unitQuiz} title={`${section.title} 확인 퀴즈`} />}
           </div>
         ))}
-        <QuizReviewCard quiz={detail.finalQuiz} title="코스 종합 퀴즈" />
+        {detail.finalQuiz && <QuizReviewCard quiz={detail.finalQuiz} title="코스 종합 퀴즈" />}
       </section>
 
       {isDialogOpen && (
-        <UnpublishDialog onClose={() => setIsDialogOpen(false)} onConfirm={handleUnpublish} />
+        <UnpublishDialog onClose={() => setIsDialogOpen(false)} onConfirm={handleUnpublish} isPending={unpublishMutation.isPending} />
       )}
     </div>
   );
@@ -231,9 +238,10 @@ const QuizReviewCard = ({ quiz, title }: QuizReviewCardProps) => (
 interface UnpublishDialogProps {
   onClose: () => void;
   onConfirm: (reason: string) => void;
+  isPending: boolean;
 }
 
-const UnpublishDialog = ({ onClose, onConfirm }: UnpublishDialogProps) => {
+const UnpublishDialog = ({ onClose, onConfirm, isPending }: UnpublishDialogProps) => {
   const [reason, setReason] = useState("");
   const trimmedReason = reason.trim();
 
@@ -250,7 +258,7 @@ const UnpublishDialog = ({ onClose, onConfirm }: UnpublishDialogProps) => {
         aria-labelledby="unpublish-title"
         onSubmit={(event) => {
           event.preventDefault();
-          if (trimmedReason.length > 0) onConfirm(trimmedReason);
+          if (trimmedReason.length > 0 && !isPending) onConfirm(trimmedReason);
         }}
         className="w-full max-w-[480px] rounded-[6px] border border-line-focus bg-panel p-5 shadow-2xl md:p-6"
       >
@@ -276,11 +284,11 @@ const UnpublishDialog = ({ onClose, onConfirm }: UnpublishDialogProps) => {
           <span>{reason.length} / 500</span>
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="h-10 cursor-pointer rounded-[4px] border border-line-strong px-4 text-xs text-text-sub hover:bg-selected">
+          <button type="button" onClick={onClose} disabled={isPending} className="h-10 cursor-pointer rounded-[4px] border border-line-strong px-4 text-xs text-text-sub hover:bg-selected disabled:opacity-50">
             취소
           </button>
-          <button type="submit" disabled={!trimmedReason} className="h-10 cursor-pointer rounded-[4px] bg-danger px-4 text-xs font-medium text-on-danger hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
-            비공개 처리
+          <button type="submit" disabled={!trimmedReason || isPending} className="h-10 cursor-pointer rounded-[4px] bg-danger px-4 text-xs font-medium text-on-danger hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40">
+            {isPending ? "처리 중…" : "비공개 처리"}
           </button>
         </div>
       </form>
