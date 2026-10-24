@@ -47,7 +47,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
       {statusMutation.error && <p role="alert" className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{statusMutation.error instanceof ApiError ? statusMutation.error.message : "강좌 상태 변경에 실패했습니다."}</p>}
 
       <Card padding="md" className="mt-5 border border-line">
-        <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] tracking-[1px] text-muted">공개 준비</p><h2 className="mt-1 text-sm font-medium">필수 항목을 확인해 주세요</h2></div><strong className="text-sm tabular-nums text-accent">{completed}/{course.publishRequirements.length}</strong></div>
+        <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] tracking-[1px] text-muted">공개 준비</p>{!courseQuery.data.publishCheck.isReady && <h2 className="mt-1 text-sm font-medium">필수 항목을 확인해 주세요</h2>}</div><strong className="text-sm tabular-nums text-accent">{completed}/{course.publishRequirements.length}</strong></div>
         <div className="mt-3 h-1 overflow-hidden rounded-full bg-card"><div className="h-full rounded-full bg-accent" style={{ width: `${completed / course.publishRequirements.length * 100}%` }} /></div>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">{course.publishRequirements.map((item) => <li key={item.label} className="flex items-center gap-2 text-[11px]"><span className={`flex size-4 shrink-0 items-center justify-center rounded-full text-[9px] ${item.complete ? "bg-success-bg text-success" : "bg-card text-dim"}`}>{item.complete ? "✓" : "·"}</span><span className={item.complete ? "text-text-sub" : "text-muted"}>{item.label}</span></li>)}</ul>
       </Card>
