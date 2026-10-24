@@ -1,7 +1,6 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { InstructorCourseDetailPage } from "../../components/courses/InstructorCourseDetailPage";
-import { getInstructorCourse } from "../../data/courses";
 
 interface Props {
   params: Promise<{ courseId: string }>;
@@ -12,9 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function InstructorCourseRoute({ params }: Props) {
-  const { courseId } = await params;
-  const course = getInstructorCourse(Number(courseId));
-  if (!course) notFound();
+  return <Suspense fallback={<div role="status" className="p-6 text-sm text-muted">강좌 정보를 불러오는 중입니다.</div>}><InstructorCourseRouteContent params={params} /></Suspense>;
+}
 
-  return <InstructorCourseDetailPage course={course} />;
+async function InstructorCourseRouteContent({ params }: Props) {
+  const { courseId } = await params;
+  return <InstructorCourseDetailPage courseId={Number(courseId)} />;
 }

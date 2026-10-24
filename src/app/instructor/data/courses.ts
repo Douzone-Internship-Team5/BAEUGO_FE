@@ -27,7 +27,7 @@ export interface InstructorSection {
 export interface InstructorCourseDetail extends InstructorCourse {
   description: string;
   difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-  otVideo: { videoId: number; title: string; duration: string; transcriptReviewed: boolean };
+  otVideo: { videoId: number; title: string; duration: string; transcriptReviewed: boolean } | null;
   sections: InstructorSection[];
   finalQuiz: { status: "COMPLETED" | "PROCESSING" | "PENDING"; reviewed: boolean };
   publishRequirements: Array<{ label: string; complete: boolean }>;

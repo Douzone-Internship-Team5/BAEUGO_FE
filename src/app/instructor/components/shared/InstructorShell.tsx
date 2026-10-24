@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { InstructorNavIcon } from "./InstructorNavIcon";
 
 interface Props {
@@ -21,6 +22,8 @@ export const InstructorShell = ({ children }: Props) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const name = useAuthStore((state) => state.user?.name?.trim());
+  const displayName = name || "강사";
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -77,9 +80,9 @@ export const InstructorShell = ({ children }: Props) => {
 
         <div className="border-t border-line p-4">
           <div className="mb-3 flex items-center gap-3 px-2">
-            <span className="flex size-9 items-center justify-center rounded-full bg-selected text-sm font-medium text-text">이</span>
+            <span className="flex size-9 items-center justify-center rounded-full bg-selected text-sm font-medium text-text">{displayName.slice(0, 1)}</span>
             <div>
-              <p className="text-xs font-medium">이하늘 강사</p>
+              <p className="text-xs font-medium">{displayName} 강사</p>
               <p className="mt-1 text-[10px] text-muted">강사 계정</p>
             </div>
           </div>
