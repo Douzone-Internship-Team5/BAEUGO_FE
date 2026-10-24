@@ -42,7 +42,9 @@ export const MemberDetailPage = ({ detail }: Props) => {
 
       <section className="rounded-[4px] border border-line bg-panel p-5 md:p-6">
         <SectionHeading eyebrow="ONBOARDING" title="온보딩 설정" />
-        {onboarding.kind === "LEARNER" ? (
+        {!onboarding ? (
+          <p className="mt-5 text-xs text-muted">등록된 온보딩 정보가 없습니다.</p>
+        ) : onboarding.kind === "LEARNER" ? (
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <MetadataItem label="현재 상황" value={onboarding.currentStatus} />
             <MetadataItem label="희망 직무" value={onboarding.jobCategory} />
@@ -161,11 +163,12 @@ const AccountStatus = ({ active }: AccountStatusProps) => (
   </span>
 );
 
-const formatDateTime = (value: string) =>
-  new Intl.DateTimeFormat("ko-KR", {
+const formatDateTime = (value: string) => value
+  ? new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(new Date(value))
+  : "학습 기록 없음";

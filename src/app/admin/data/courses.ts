@@ -6,7 +6,7 @@ export interface AdminCourse {
   instructorName: string;
   categoryId: number;
   jobCategory: string;
-  status: Extract<CourseStatus, "PUBLISHED" | "OPERATOR_HIDDEN">;
+  status: Extract<CourseStatus, "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN">;
   priceKrw: number;
   enrollmentCount: number;
   publishedAt: string;
