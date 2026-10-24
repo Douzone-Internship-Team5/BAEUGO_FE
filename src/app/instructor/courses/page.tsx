@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { InstructorCourseListPage } from "../components/courses/InstructorCourseListPage";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "내 강좌",
 };
 
 export default function InstructorCoursesPage() {
-  return <InstructorCourseListPage />;
+  redirect("/instructor");
 }

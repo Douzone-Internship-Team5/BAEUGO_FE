@@ -20,14 +20,14 @@ export interface InstructorCourse {
 export interface InstructorSection {
   sectionId: number;
   title: string;
-  videos: Array<{ title: string; duration: string; transcriptReviewed: boolean }>;
+  videos: Array<{ videoId: number; title: string; duration: string; transcriptReviewed: boolean }>;
   quiz: { status: "COMPLETED" | "PROCESSING" | "PENDING"; reviewed: boolean };
 }
 
 export interface InstructorCourseDetail extends InstructorCourse {
   description: string;
   difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-  otVideo: { title: string; duration: string; transcriptReviewed: boolean };
+  otVideo: { videoId: number; title: string; duration: string; transcriptReviewed: boolean };
   sections: InstructorSection[];
   finalQuiz: { status: "COMPLETED" | "PROCESSING" | "PENDING"; reviewed: boolean };
   publishRequirements: Array<{ label: string; complete: boolean }>;
@@ -106,14 +106,14 @@ export const INSTRUCTOR_COURSE_DETAILS: InstructorCourseDetail[] = [
     description:
       "보고서의 목적과 핵심 메시지를 먼저 정리하고, 데이터와 근거를 구조화해 설득력 있는 한 장의 문서로 완성합니다.",
     difficulty: "INTERMEDIATE",
-    otVideo: { title: "좋은 보고서는 무엇이 다를까요?", duration: "04:32", transcriptReviewed: true },
+    otVideo: { videoId: 1001, title: "좋은 보고서는 무엇이 다를까요?", duration: "04:32", transcriptReviewed: true },
     sections: [
       {
         sectionId: 1,
         title: "보고서의 목적과 독자 정의하기",
         videos: [
-          { title: "보고받는 사람부터 이해하기", duration: "12:40", transcriptReviewed: true },
-          { title: "핵심 질문으로 범위 좁히기", duration: "10:18", transcriptReviewed: true },
+          { videoId: 1101, title: "보고받는 사람부터 이해하기", duration: "12:40", transcriptReviewed: true },
+          { videoId: 1102, title: "핵심 질문으로 범위 좁히기", duration: "10:18", transcriptReviewed: true },
         ],
         quiz: { status: "COMPLETED", reviewed: true },
       },
@@ -121,15 +121,15 @@ export const INSTRUCTOR_COURSE_DETAILS: InstructorCourseDetail[] = [
         sectionId: 2,
         title: "핵심 메시지와 근거 구성하기",
         videos: [
-          { title: "결론을 먼저 쓰는 구조", duration: "14:06", transcriptReviewed: true },
-          { title: "데이터로 주장을 뒷받침하기", duration: "16:22", transcriptReviewed: true },
+          { videoId: 1201, title: "결론을 먼저 쓰는 구조", duration: "14:06", transcriptReviewed: true },
+          { videoId: 1202, title: "데이터로 주장을 뒷받침하기", duration: "16:22", transcriptReviewed: true },
         ],
         quiz: { status: "COMPLETED", reviewed: true },
       },
       {
         sectionId: 3,
         title: "한 장으로 시각화하기",
-        videos: [{ title: "읽히는 표와 차트 만들기", duration: "18:10", transcriptReviewed: true }],
+        videos: [{ videoId: 1301, title: "읽히는 표와 차트 만들기", duration: "18:10", transcriptReviewed: true }],
         quiz: { status: "COMPLETED", reviewed: true },
       },
     ],
@@ -148,14 +148,14 @@ export const INSTRUCTOR_COURSE_DETAILS: InstructorCourseDetail[] = [
     description:
       "목적에 맞는 차트를 선택하고 핵심 인사이트를 강조해 데이터가 말하는 내용을 명확하게 전달합니다.",
     difficulty: "BEGINNER",
-    otVideo: { title: "차트보다 먼저 생각할 것", duration: "05:10", transcriptReviewed: true },
+    otVideo: { videoId: 2001, title: "차트보다 먼저 생각할 것", duration: "05:10", transcriptReviewed: true },
     sections: [
       {
         sectionId: 4,
         title: "데이터 정리와 시각화 원칙",
         videos: [
-          { title: "데이터를 차트에 맞게 정리하기", duration: "13:40", transcriptReviewed: true },
-          { title: "상황에 맞는 차트 선택하기", duration: "15:05", transcriptReviewed: false },
+          { videoId: 2101, title: "데이터를 차트에 맞게 정리하기", duration: "13:40", transcriptReviewed: true },
+          { videoId: 2102, title: "상황에 맞는 차트 선택하기", duration: "15:05", transcriptReviewed: false },
         ],
         quiz: { status: "COMPLETED", reviewed: false },
       },
@@ -172,8 +172,28 @@ export const INSTRUCTOR_COURSE_DETAILS: InstructorCourseDetail[] = [
   },
 ];
 
-export const getInstructorCourse = (courseId: number) =>
-  INSTRUCTOR_COURSE_DETAILS.find((course) => course.courseId === courseId);
+export const getInstructorCourse = (courseId: number): InstructorCourseDetail | undefined => {
+  const detail = INSTRUCTOR_COURSE_DETAILS.find((course) => course.courseId === courseId);
+  if (detail) return detail;
+  const course = INSTRUCTOR_COURSES.find((item) => item.courseId === courseId);
+  if (!course) return undefined;
+  return {
+    ...course,
+    description: course.summary,
+    difficulty: "BEGINNER",
+    otVideo: { videoId: courseId * 10, title: "강좌 소개", duration: "03:20", transcriptReviewed: false },
+    sections: [],
+    finalQuiz: { status: "PENDING", reviewed: false },
+    publishRequirements: [
+      { label: "무료 OT 영상 1개", complete: false },
+      { label: "모든 섹션에 학습 영상 포함", complete: false },
+      { label: "모든 영상 대본 검수 완료", complete: false },
+      { label: "단위 퀴즈 생성 및 검수 완료", complete: false },
+      { label: "종합 퀴즈 검수 완료", complete: false },
+      { label: "퀴즈 문항 및 보기 구성 완료", complete: false },
+    ],
+  };
+};
 
 export const COURSE_STATUS_FILTERS = [
   { value: "ALL", label: "전체" },
