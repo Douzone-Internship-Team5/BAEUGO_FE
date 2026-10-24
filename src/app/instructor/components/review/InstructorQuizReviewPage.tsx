@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/_lib/fetcher";
+import { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import useInstructorCourse from "@/api/instructor/useInstructorCourse";
 import useInstructorQuiz from "@/api/instructor/useInstructorQuiz";
 import useSaveInstructorQuiz from "@/api/instructor/useSaveInstructorQuiz";
@@ -55,7 +55,8 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
       const saved = await saveMutation.mutateAsync(questions.map((question, index) => ({ ...question, orderNo: index + 1 })));
       setDraft({ key: draftKey, questions: saved.questions });
       router.push(backHref);
-    } catch {
+    } catch (error) {
+      window.alert(getErrorMessage(error, "퀴즈 저장에 실패했습니다."));
       setNotice("");
     }
   };
@@ -88,7 +89,7 @@ export const InstructorQuizReviewPage = ({ courseId: rawCourseId, sectionId: ini
         {questions.map((question, index) => <article key={question.questionId ?? `new-${index}`} className="mt-3 rounded-[4px] border border-line bg-panel p-3.5"><div className="mb-2 flex items-center justify-between"><p className="text-[10px] text-muted">문항 {index + 1}</p><button type="button" onClick={() => updateQuestions((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="cursor-pointer p-1 text-[10px] text-muted hover:text-danger">삭제</button></div><textarea value={question.content} onChange={(event) => updateQuestion(index, { content: event.target.value })} rows={2} aria-label={`문항 ${index + 1}`} className="w-full resize-y bg-transparent text-xs leading-5 text-text outline-none" /><fieldset className="mt-3 flex flex-col gap-2">{question.choices.map((choice, choiceIndex) => <label key={`choice-${choiceIndex}`} className={`flex cursor-pointer items-center gap-2.5 rounded-[3px] border px-2.5 py-2.5 text-[11px] ${question.correctChoiceNo === choiceIndex + 1 ? "border-success-line bg-success-soft-bg text-text-sub" : "border-line text-muted"}`}><input type="radio" name={`answer-${question.questionId ?? index}`} checked={question.correctChoiceNo === choiceIndex + 1} onChange={() => updateQuestion(index, { correctChoiceNo: choiceIndex + 1 })} className="accent-[#9DB8FF]" /><input value={choice} onChange={(event) => updateQuestion(index, { choices: question.choices.map((item, i) => i === choiceIndex ? event.target.value : item) })} placeholder={`보기 ${choiceIndex + 1}`} aria-label={`문항 ${index + 1} 보기 ${choiceIndex + 1}`} className="min-w-0 flex-1 bg-transparent outline-none" />{question.correctChoiceNo === choiceIndex + 1 && <span className="text-[9px] text-success">정답</span>}</label>)}</fieldset><label className="mt-3 block text-[10px] text-muted">해설<textarea value={question.explanation} onChange={(event) => updateQuestion(index, { explanation: event.target.value })} rows={2} className="mt-1.5 w-full resize-y rounded-[3px] border border-line bg-bg p-2.5 text-[11px] leading-5 text-text-sub outline-none" /></label></article>)}
         {questions.length < 5 && <button type="button" onClick={addQuestion} className="mt-3 h-10 w-full cursor-pointer rounded-[4px] border border-dashed border-line-strong text-xs text-muted">＋ 문항 추가</button>}
       </>}
-      {(saveMutation.error || regenerateMutation.error) && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{(saveMutation.error ?? regenerateMutation.error)?.message}</p>}
+      {regenerateMutation.error && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{regenerateMutation.error.message}</p>}
       {notice && <p role="status" className="mt-4 rounded border border-success-line bg-success-soft-bg p-3 text-xs text-success">{notice}</p>}
     </main><div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-bg/95 p-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur"><button type="button" onClick={() => void handleSave()} disabled={saveMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-3xl">{saveMutation.isPending ? "저장 중…" : "저장하고 검수 완료"}</button></div>
   </div>;
