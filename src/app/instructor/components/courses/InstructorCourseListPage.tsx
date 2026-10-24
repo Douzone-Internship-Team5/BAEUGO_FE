@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Card, CourseStatusBadge } from "@/components/common";
+import useInstructorCourses from "@/api/instructor/useInstructorCourses";
+import { toInstructorCourse } from "@/api/instructor/toInstructorCourse";
 import type { CourseStatus } from "@/constants/colors";
-import { COURSE_STATUS_FILTERS, INSTRUCTOR_COURSES } from "../../data/courses";
+import { COURSE_STATUS_FILTERS } from "../../data/courses";
 import type { InstructorCourse } from "../../data/courses";
 
 type StatusFilter = "ALL" | CourseStatus;
@@ -13,20 +15,23 @@ export const InstructorCourseListPage = () => {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("ALL");
 
+  const { data, error, isPending } = useInstructorCourses(status === "ALL" ? undefined : status);
+  const courses = (data?.items ?? []).map(toInstructorCourse);
+
   const filteredCourses = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
-    return INSTRUCTOR_COURSES.filter((course) => {
+    return courses.filter((course) => {
       const matchesQuery = !normalizedQuery ||
         course.title.toLocaleLowerCase("ko-KR").includes(normalizedQuery) ||
         course.topic.toLocaleLowerCase("ko-KR").includes(normalizedQuery);
       return matchesQuery && (status === "ALL" || course.status === status);
     });
-  }, [query, status]);
+  }, [courses, query, status]);
 
-  const counts = useMemo(() => INSTRUCTOR_COURSES.reduce<Record<string, number>>((result, course) => {
+  const counts = useMemo(() => courses.reduce<Record<string, number>>((result, course) => {
     result[course.status] = (result[course.status] ?? 0) + 1;
     return result;
-  }, {}), []);
+  }, {}), [courses]);
 
   return (
     <div className="mx-auto flex max-w-[1440px] flex-col gap-7">
@@ -37,7 +42,7 @@ export const InstructorCourseListPage = () => {
           <p className="mt-2 text-sm text-muted">강좌와 콘텐츠 준비 상태를 관리합니다.</p>
         </div>
         <div className="rounded-[4px] border border-line bg-panel px-3.5 py-2.5 text-xs text-muted">
-          전체 <strong className="ml-1 text-sm font-semibold text-text">{INSTRUCTOR_COURSES.length}</strong>개
+          전체 <strong className="ml-1 text-sm font-semibold text-text">{data?.total ?? 0}</strong>개
         </div>
       </header>
 
@@ -68,6 +73,8 @@ export const InstructorCourseListPage = () => {
         />
       </label>
 
+      {isPending && <p className="py-8 text-center text-sm text-muted">강좌를 불러오는 중입니다.</p>}
+      {error && <p role="alert" className="rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{error.message}</p>}
       <Card padding="none" className="overflow-hidden border border-line">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[840px] border-collapse text-left">
@@ -90,7 +97,6 @@ export const InstructorCourseListPage = () => {
           </table>
         </div>
       </Card>
-      <p className="text-[10px] text-dim">강좌 목록은 화면 확인용 예시 데이터입니다.</p>
     </div>
   );
 };

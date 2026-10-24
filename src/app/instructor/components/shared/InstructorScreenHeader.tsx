@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useAuthStore } from "@/app/login/store/useAuthStore";
 
 interface Props {
   title: string;
@@ -42,8 +45,11 @@ interface StudioHeaderProps {
   count?: number;
 }
 
-export const StudioHeader = ({ title, count }: StudioHeaderProps) => (
-  <header className="flex h-[60px] items-center justify-between px-5 md:h-[72px] md:border-b md:border-line md:px-8">
+export const StudioHeader = ({ title, count }: StudioHeaderProps) => {
+  const name = useAuthStore((state) => state.user?.name?.trim());
+  const displayName = name || "강사";
+
+  return <header className="flex h-[60px] items-center justify-between px-5 md:h-[72px] md:border-b md:border-line md:px-8">
     {title ? (
       <div className="flex w-full min-w-0 items-baseline justify-between gap-2.5 md:gap-3">
         <span className="min-w-0 truncate text-[26px] font-light leading-[1.35] tracking-[-0.5px]">
@@ -52,7 +58,7 @@ export const StudioHeader = ({ title, count }: StudioHeaderProps) => (
             <span className="ml-2 font-semibold">{count}개</span>
           )}
         </span>
-        <Link href="/instructor/profile" className="shrink-0 cursor-pointer text-[15px] text-muted transition hover:text-text">강사 이하늘님</Link>
+        <Link href="/instructor/profile" className="shrink-0 cursor-pointer text-[15px] text-muted transition hover:text-text">강사 {displayName}님</Link>
       </div>
     ) : (
       <div className="flex items-baseline gap-2">
@@ -65,5 +71,5 @@ export const StudioHeader = ({ title, count }: StudioHeaderProps) => (
         이
       </span>
     )}
-  </header>
-);
+  </header>;
+};

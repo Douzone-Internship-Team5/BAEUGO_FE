@@ -6,6 +6,7 @@ import { persist } from "zustand/middleware";
 interface IUserState {
   email: string;
   id: string;
+  name?: string;
   profile_image: string;
 }
 
