@@ -49,7 +49,7 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
   const missing = dto.publishCheck.missing;
   const requirements = [
     { code: "OT_VIDEO_MISSING", label: "무료 OT 영상 1개" },
-    { code: "LESSON_VIDEO_MISSING", label: "모든 섹션에 학습 영상 포함" },
+    { code: "SECTION_AND_LESSON_VIDEO", label: "섹션 1개 이상 · 각 섹션에 학습 영상 1개 이상" },
     { code: "TRANSCRIPT_NOT_REVIEWED", label: "모든 영상 대본 검수 완료" },
     { code: "UNIT_QUIZ", label: "단위 퀴즈 생성 및 검수 완료" },
     { code: "FINAL_QUIZ", label: "종합 퀴즈 검수 완료" },
@@ -83,7 +83,7 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
       complete: !missing.some((code) =>
         requirement.code === "QUIZ_QUESTION_STRUCTURE"
           ? code.startsWith("QUESTION_COUNT_INVALID") || code.startsWith("CHOICE_COUNT_INVALID")
-          : requirement.code === "LESSON_VIDEO_MISSING"
+          : requirement.code === "SECTION_AND_LESSON_VIDEO"
             ? code.startsWith("SECTION_MISSING") || code.startsWith("LESSON_VIDEO_MISSING")
           : code.startsWith(requirement.code),
       ),
