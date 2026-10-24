@@ -33,6 +33,7 @@ export const LoginPage = ({ className = "" }: Props) => {
       useAuthStore.getState().setUser({
         id: String(user.id),
         email: user.email,
+        name: user.name,
         profile_image: "",
       });
       window.localStorage.setItem("accessToken", accessToken);
