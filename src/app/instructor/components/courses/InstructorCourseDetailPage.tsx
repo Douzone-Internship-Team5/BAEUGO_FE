@@ -28,7 +28,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
       // Mutation errors are displayed inline.
     }
   };
-  return <div className="min-h-dvh pb-24 md:pb-8">
+  return <div className="min-h-dvh pb-[calc(9.5rem+env(safe-area-inset-bottom))] md:pb-8">
     <InstructorScreenHeader title="강좌 편집 · 공개" backHref="/instructor" />
     <main className="mx-auto max-w-4xl px-4 pt-5 md:px-8 md:pt-8">
       <div className="flex items-center justify-between gap-3"><div><Link href="/instructor" className="mb-2 hidden w-fit cursor-pointer items-center gap-1 text-xs text-muted transition hover:text-text md:flex"><span aria-hidden="true">←</span> 내 강좌</Link><h1 className="text-xl font-medium leading-7 md:text-2xl">{course.title}</h1><p className="mt-1.5 text-[11px] text-muted">{course.category} · {course.topic} · {course.priceKrw.toLocaleString("ko-KR")}원</p></div><CourseStatusBadge status={course.status} /></div>
@@ -52,7 +52,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
         <ContentCard title="종합 퀴즈" subtitle={`${course.lessonCount}개 영상 대상`} quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=final`} quizStatus={course.finalQuiz} />
       </section>
     </main>
-    <div className="fixed inset-x-0 bottom-[58px] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0"><button type="button" onClick={() => void handlePublish()} disabled={!canPublish || statusMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-sm">{statusMutation.isPending ? "공개 처리 중…" : canPublish ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button></div>
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur md:static md:mt-8 md:border-0 md:bg-transparent md:p-0"><button type="button" onClick={() => void handlePublish()} disabled={!canPublish || statusMutation.isPending} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-sm">{statusMutation.isPending ? "공개 처리 중…" : canPublish ? "강좌 공개하기" : `공개 항목 확인하기 · ${course.publishRequirements.length - completed}개 남음`}</button></div>
     <InstructorMobileNav active="courses" />
   </div>;
 };
