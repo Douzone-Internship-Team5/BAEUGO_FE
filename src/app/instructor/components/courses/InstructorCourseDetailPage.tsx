@@ -26,7 +26,7 @@ export const InstructorCourseDetailPage = ({ course }: Props) => {
           <VideoRow courseId={course.courseId} video={course.otVideo} />
         </ContentCard>
         {course.sections.map((section, index) => <ContentCard key={section.sectionId} title={`섹션 ${index + 1}. ${section.title}`} subtitle={`${section.videos.length}개 영상`} quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=${section.sectionId}`} quizStatus={section.quiz}>
-          {section.videos.map((video) => <VideoRow key={video.videoId} courseId={course.courseId} video={video} />)}
+          {section.videos.map((video, videoIndex) => <VideoRow key={`${course.courseId}-${section.sectionId}-${video.videoId ?? video.title}-${videoIndex}`} courseId={course.courseId} video={video} />)}
           {section.videos.length === 0 && <p className="px-3 py-4 text-xs text-muted">등록된 영상이 없습니다.</p>}
         </ContentCard>)}
         <ContentCard title="종합 퀴즈" subtitle={`${course.lessonCount}개 영상 대상`} quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=final`} quizStatus={course.finalQuiz} />
