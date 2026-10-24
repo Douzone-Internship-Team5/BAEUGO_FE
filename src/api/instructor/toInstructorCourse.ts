@@ -53,7 +53,7 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
     { code: "TRANSCRIPT_NOT_REVIEWED", label: "모든 영상 대본 검수 완료" },
     { code: "UNIT_QUIZ", label: "단위 퀴즈 생성 및 검수 완료" },
     { code: "FINAL_QUIZ", label: "종합 퀴즈 검수 완료" },
-    { code: "QUESTION_COUNT", label: "퀴즈 문항 및 보기 구성 완료" },
+    { code: "QUIZ_QUESTION_STRUCTURE", label: "퀴즈마다 문항 3~5개 · 보기 4개" },
   ];
   return {
     ...base,
@@ -81,8 +81,8 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
     publishRequirements: requirements.map((requirement) => ({
       label: requirement.label,
       complete: !missing.some((code) =>
-        requirement.code === "QUESTION_COUNT"
-          ? code.startsWith("QUESTION_COUNT") || code.startsWith("CHOICE_COUNT")
+        requirement.code === "QUIZ_QUESTION_STRUCTURE"
+          ? code.startsWith("QUESTION_COUNT_INVALID") || code.startsWith("CHOICE_COUNT_INVALID")
           : requirement.code === "LESSON_VIDEO_MISSING"
             ? code.startsWith("SECTION_MISSING") || code.startsWith("LESSON_VIDEO_MISSING")
           : code.startsWith(requirement.code),
