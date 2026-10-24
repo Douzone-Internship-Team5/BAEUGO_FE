@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
+import api, { ApiError, getErrorMessage } from "@/_lib/fetcher";
+import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 
@@ -13,7 +15,6 @@ interface InstructorProfile {
   lectureTopicIds: number[];
   bio: string;
 }
-interface ApiResponse<T> { data: T }
 interface MyInfo {
   name: string;
   activeMode: string;
@@ -58,33 +59,29 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
   useEffect(() => {
     const controller = new AbortController();
     const loadProfile = async () => {
-      const accessToken = window.localStorage.getItem("accessToken");
-      if (!accessToken) {
-        setError("로그인 정보를 찾을 수 없습니다. 다시 로그인해 주세요.");
-        setIsLoading(false);
-        return;
-      }
       try {
-        const response = await fetch("/api/v1/users/me", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("강사 정보를 불러오지 못했습니다.");
-        const result = await response.json() as ApiResponse<MyInfo>;
-        const data = result.data;
-        if (data.activeMode !== "INSTRUCTOR" || !data.onboarding?.categoryId || !data.onboarding.jobCategory) {
-          throw new Error("강사 온보딩 정보를 확인할 수 없습니다.");
+        const response = await api.get<MyInfo>({ endpoint: "/users/me", signal: controller.signal });
+        const data = response?.data;
+        if (!data || data.activeMode !== "INSTRUCTOR") {
+          throw new Error("강사 모드에서만 강사 정보를 수정할 수 있습니다.");
         }
         setProfile({
           name: data.name ?? "",
-          categoryId: data.onboarding.categoryId,
-          jobCategory: data.onboarding.jobCategory,
-          lectureTopicIds: data.onboarding.lectureTopicIds ?? [],
-          bio: data.onboarding.bio ?? "",
+          categoryId: data.onboarding?.categoryId ?? 0,
+          jobCategory: data.onboarding?.jobCategory ?? "",
+          lectureTopicIds: data.onboarding?.lectureTopicIds ?? [],
+          bio: data.onboarding?.bio ?? "",
         });
         setError("");
       } catch (loadError) {
-        if (!controller.signal.aborted) setError(loadError instanceof Error ? loadError.message : "강사 정보를 불러오지 못했습니다.");
+        if (controller.signal.aborted) return;
+        // 내 정보 조회(A-5)가 아직 없는 백엔드에서도 새로 입력해 저장할 수 있게 빈 양식을 보여준다.
+        if (loadError instanceof ApiError && loadError.status === 404) {
+          setProfile({ name: useAuthStore.getState().user?.name ?? "", categoryId: 0, jobCategory: "", lectureTopicIds: [], bio: "" });
+          setNotice("");
+          return;
+        }
+        setError(getErrorMessage(loadError, "강사 정보를 불러오지 못했습니다."));
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
@@ -114,28 +111,23 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!profile || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5) return;
-    const accessToken = window.localStorage.getItem("accessToken");
-    if (!accessToken) {
-      setError("로그인 정보를 찾을 수 없습니다. 다시 로그인해 주세요.");
-      return;
-    }
+    if (!profile || !profile.categoryId || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5) return;
     setIsSaving(true);
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/v1/users/me/onboarding", {
-        method: "PUT",
-        headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ name: profile.name, categoryId: profile.categoryId, jobCategory: profile.jobCategory, lectureTopicIds: profile.lectureTopicIds, bio: profile.bio }),
+      await api.put({
+        endpoint: "/users/me/onboarding",
+        body: {
+          ...(profile.name.trim() ? { name: profile.name.trim() } : {}),
+          categoryId: profile.categoryId,
+          lectureTopicIds: profile.lectureTopicIds,
+          bio: profile.bio.trim(),
+        },
       });
-      if (!response.ok) {
-        const result = await response.json().catch(() => null) as { error?: { message?: string } } | null;
-        throw new Error(result?.error?.message ?? "강사 정보 저장에 실패했습니다.");
-      }
       setNotice("강사 정보를 저장했습니다.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "강사 정보 저장에 실패했습니다.");
+      setError(getErrorMessage(saveError, "강사 정보 저장에 실패했습니다."));
     } finally {
       setIsSaving(false);
     }
@@ -153,7 +145,7 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
         <fieldset><legend className="mb-2.5 text-xs font-medium">전문 직무 <span className="text-warning">*</span></legend><div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{CATEGORIES.map((category) => <button key={category.id} type="button" aria-pressed={profile.categoryId === category.id} onClick={() => handleCategoryChange(category.id)} className={`cursor-pointer rounded-[4px] border px-3 py-3 text-left text-xs transition ${profile.categoryId === category.id ? "border-accent bg-selected text-accent" : "border-line bg-panel text-text-sub hover:border-line-focus"}`}>{category.label}</button>)}</div></fieldset>
         <fieldset><legend className="mb-2.5 text-xs font-medium">강의 주제 <span className="text-warning">* · 1개 이상</span></legend><div className="flex flex-wrap gap-2">{topics.map((topic) => { const selected = profile.lectureTopicIds.includes(topic.id); return <button key={topic.id} type="button" aria-pressed={selected} onClick={() => toggleTopic(topic.id)} className={`cursor-pointer rounded-full border px-3 py-2 text-xs transition ${selected ? "border-accent bg-selected text-accent" : "border-line bg-panel text-muted hover:border-line-focus"}`}>{topic.label}</button>; })}</div></fieldset>
         <label className="flex flex-col gap-2"><span className="flex justify-between text-xs font-medium"><span>강사 약력 <span className="text-warning">*</span></span><span className="font-normal text-muted">{profile.bio.length}/500</span></span><textarea required minLength={5} maxLength={500} rows={5} value={profile.bio} onChange={(event) => updateProfile({ bio: event.target.value })} placeholder="경력과 강의 경험을 소개해 주세요." className="resize-y rounded-[4px] border border-line bg-panel px-3 py-3 text-xs leading-5 text-text placeholder:text-dim focus:border-line-focus focus:outline-none" /><span className={`text-[10px] ${profile.bio.length > 0 && profile.bio.trim().length < 5 ? "text-danger" : "text-muted"}`}>{profile.bio.length > 0 && profile.bio.trim().length < 5 ? "약력은 5자 이상 입력해 주세요." : "강좌 상세에 표시되는 소개입니다."}</span></label>
-        <button type="submit" disabled={isSaving || isLoading || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5} className="h-11 cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{isSaving ? "저장 중…" : "변경 사항 저장"}</button>
+        <button type="submit" disabled={isSaving || isLoading || !profile.categoryId || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5} className="h-11 cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{isSaving ? "저장 중…" : "변경 사항 저장"}</button>
       </form>}
     </main>
     <InstructorMobileNav active="profile" />
