@@ -44,6 +44,8 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
       <OnboardingComplete
         title="강사 설정을 마쳤어요"
         description={`${job} · ${topics.join(" · ")} 분야로 시작할 준비가 됐어요.`}
+        href="/instructor"
+        actionLabel="강사 페이지로 이동"
       />
     );
   }
