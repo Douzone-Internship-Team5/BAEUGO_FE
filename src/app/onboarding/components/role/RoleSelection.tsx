@@ -1,4 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ApiError } from "@/_lib/fetcher";
+import useSelectOnboardingRole from "@/api/onboarding/useSelectOnboardingRole";
+import type { OnboardingRole } from "@/types/onboarding";
 import { OnboardingFrame } from "../shared/OnboardingFrame";
 import { RoleOptionCard } from "./RoleOptionCard";
 
@@ -6,7 +13,28 @@ interface Props {
   className?: string;
 }
 
-export const RoleSelection = ({ className }: Props) => (
+export const RoleSelection = ({ className }: Props) => {
+  const router = useRouter();
+  const roleMutation = useSelectOnboardingRole();
+  const [error, setError] = useState("");
+
+  const handleRoleSelect = async (role: OnboardingRole) => {
+    if (roleMutation.isPending) return;
+    setError("");
+
+    try {
+      await roleMutation.mutateAsync(role);
+      router.push(role === "LEARNER" ? "/onboarding/learner" : "/onboarding/instructor");
+    } catch (requestError) {
+      setError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : "역할 선택에 실패했습니다. 로그인 상태를 확인해 주세요.",
+      );
+    }
+  };
+
+  return (
   <OnboardingFrame className={className ?? "px-6 pt-14 pb-7"}>
     <div
       aria-label="BAEUGO"
@@ -26,10 +54,13 @@ export const RoleSelection = ({ className }: Props) => (
       </p>
     </main>
     <nav aria-label="시작하기" className="flex flex-col gap-2.5">
-      <RoleOptionCard href="/onboarding/learner" emphasized>
+      <RoleOptionCard onClick={() => void handleRoleSelect("LEARNER")} disabled={roleMutation.isPending} emphasized>
         강의를 수강할게요
       </RoleOptionCard>
-      <RoleOptionCard href="/onboarding/instructor">강의를 등록할게요</RoleOptionCard>
+      <RoleOptionCard onClick={() => void handleRoleSelect("INSTRUCTOR")} disabled={roleMutation.isPending}>
+        강의를 등록할게요
+      </RoleOptionCard>
+      {error && <p role="alert" className="rounded-lg border border-danger-line bg-danger-bg px-3 py-2 text-center text-xs text-danger">{error}</p>}
       <div className="pt-3 text-center text-xs text-muted">
         이미 계정이 있으신가요?{" "}
         <Link href="/login" className="cursor-pointer font-medium text-accent hover:underline">로그인</Link>
@@ -37,4 +68,5 @@ export const RoleSelection = ({ className }: Props) => (
       <div className="pt-1 text-center text-[10px] text-dim">BAEUGO</div>
     </nav>
   </OnboardingFrame>
-);
+  );
+};

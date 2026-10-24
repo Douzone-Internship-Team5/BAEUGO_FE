@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/_lib/fetcher";
+import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { type TimeSlot } from "../data/options";
+import { CURRENT_STATUS_VALUES, getJobCategory, getSelectedTopicIds } from "../data/options";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
@@ -17,6 +20,7 @@ interface Props {
 
 export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
+  const saveMutation = useSaveOnboarding();
   const [step, setStep] = useState(Math.min(3, Math.max(1, initialStep)));
   const [situation, setSituation] = useState("");
   const [job, setJob] = useState("");
@@ -36,14 +40,39 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
     );
   };
 
+  const handleJobChange = (value: string) => {
+    setJob(value);
+    setTopics([]);
+  };
+
   const handleBack = () => {
     if (step === 1) router.push("/onboarding");
     else setStep((current) => current - 1);
   };
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && (!situation || !job)) return;
     if (step < 3) setStep((current) => current + 1);
-    else setCompleted(true);
+    else {
+      const category = getJobCategory(job);
+      if (!category || goal === null) return;
+
+      try {
+        await saveMutation.mutateAsync({
+          jobCategory: category.code,
+          currentStatus: CURRENT_STATUS_VALUES[situation as keyof typeof CURRENT_STATUS_VALUES],
+          interestTopicIds: getSelectedTopicIds(job, topics),
+          dailyGoalMinutes: goal,
+          timeSlots: slots.map((slot, index) => ({
+            startTime: `${slot.start}:00`,
+            endTime: `${slot.end}:00`,
+            sortOrder: index + 1,
+          })),
+        });
+        setCompleted(true);
+      } catch {
+        // The shared footer shows the mutation error.
+      }
+    }
   };
 
   if (completed) {
@@ -69,7 +98,9 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
       onSubmit={handleNext}
       buttonLabel={buttonLabel}
       summary={summary}
-      disabled={!isStepValid || !isTopicStepValid}
+      disabled={!isStepValid || !isTopicStepValid || (step === 3 && goal === null)}
+      loading={saveMutation.isPending}
+      error={saveMutation.error instanceof ApiError ? saveMutation.error.message : saveMutation.error?.message}
     >
       <div className="flex flex-col gap-7">
         {step === 1 && (
@@ -88,7 +119,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
               situation={situation}
               job={job}
               onSituationChange={setSituation}
-              onJobChange={setJob}
+              onJobChange={handleJobChange}
             />
           </>
         )}
@@ -105,6 +136,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
               description="여러 개 골라도 돼요. 무료 OT 피드를 이 주제로 채워요."
             />
             <LearnerTopicFields
+              job={job}
               selectedTopics={topics}
               onToggleTopic={toggleTopic}
             />

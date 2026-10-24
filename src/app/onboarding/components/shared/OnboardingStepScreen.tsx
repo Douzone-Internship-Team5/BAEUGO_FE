@@ -11,6 +11,8 @@ interface Props {
   buttonLabel: string;
   summary?: string;
   disabled?: boolean;
+  loading?: boolean;
+  error?: string;
   children: ReactNode;
 }
 
@@ -23,6 +25,8 @@ export const OnboardingStepScreen = ({
   buttonLabel,
   summary,
   disabled,
+  loading,
+  error,
   children,
 }: Props) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -40,7 +44,7 @@ export const OnboardingStepScreen = ({
       />
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
         <main className="flex-1 overflow-y-auto px-5 py-6">{children}</main>
-        <OnboardingStepFooter summary={summary} disabled={disabled}>
+        <OnboardingStepFooter summary={summary} disabled={disabled || loading} loading={loading} error={error}>
           {buttonLabel}
         </OnboardingStepFooter>
       </form>
