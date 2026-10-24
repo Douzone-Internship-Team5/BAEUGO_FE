@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/_lib/fetcher";
+import { getErrorMessage } from "@/_lib/fetcher";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { type TimeSlot } from "../data/options";
 import { CURRENT_STATUS_VALUES, getJobCategory, getSelectedTopicIds } from "../data/options";
@@ -100,7 +100,7 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
       summary={summary}
       disabled={!isStepValid || !isTopicStepValid || (step === 3 && goal === null)}
       loading={saveMutation.isPending}
-      error={saveMutation.error instanceof ApiError ? saveMutation.error.message : saveMutation.error?.message}
+      error={saveMutation.error ? getErrorMessage(saveMutation.error, "온보딩 저장에 실패했습니다.") : undefined}
     >
       <div className="flex flex-col gap-7">
         {step === 1 && (

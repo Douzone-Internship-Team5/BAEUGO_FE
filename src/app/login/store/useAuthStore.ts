@@ -8,6 +8,7 @@ interface IUserState {
   id: string;
   name?: string;
   profile_image: string;
+  activeMode?: "LEARNER" | "INSTRUCTOR" | null;
 }
 
 type LoginState = {

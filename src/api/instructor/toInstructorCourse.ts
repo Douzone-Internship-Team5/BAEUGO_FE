@@ -2,7 +2,7 @@ import { JOB_CATEGORIES } from "@/app/onboarding/data/options";
 import type { InstructorCourse, InstructorCourseDetail } from "@/app/instructor/data/courses";
 import type { InstructorCourseDetailDto, InstructorCourseItemDto, InstructorCourseStatus } from "@/types/instructor";
 
-const getCategory = (categoryId: number) => JOB_CATEGORIES.find((category) => category.id === categoryId);
+const getCategory = (categoryId: number) => JOB_CATEGORIES?.find((category) => category.id === categoryId);
 const getTopicName = (categoryId: number, topicId: number) => getCategory(categoryId)?.topics.find((topic) => topic.id === topicId)?.name ?? `주제 #${topicId}`;
 const formatDuration = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 const isCourseStatus = (status: string): status is InstructorCourseStatus => ["DRAFT", "PUBLISHED", "EDITING", "OPERATOR_HIDDEN"].includes(status);
@@ -49,11 +49,11 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
   const missing = dto.publishCheck.missing;
   const requirements = [
     { code: "OT_VIDEO_MISSING", label: "무료 OT 영상 1개" },
-    { code: "SECTION_MISSING", label: "모든 섹션에 학습 영상 포함" },
+    { code: "SECTION_AND_LESSON_VIDEO", label: "섹션 1개 이상 · 각 섹션에 학습 영상 1개 이상" },
     { code: "TRANSCRIPT_NOT_REVIEWED", label: "모든 영상 대본 검수 완료" },
     { code: "UNIT_QUIZ", label: "단위 퀴즈 생성 및 검수 완료" },
     { code: "FINAL_QUIZ", label: "종합 퀴즈 검수 완료" },
-    { code: "QUESTION_COUNT", label: "퀴즈 문항 및 보기 구성 완료" },
+    { code: "QUIZ_QUESTION_STRUCTURE", label: "퀴즈마다 문항 3~5개 · 보기 4개" },
   ];
   return {
     ...base,
@@ -81,8 +81,10 @@ export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): Instru
     publishRequirements: requirements.map((requirement) => ({
       label: requirement.label,
       complete: !missing.some((code) =>
-        requirement.code === "QUESTION_COUNT"
-          ? code.startsWith("QUESTION_COUNT") || code.startsWith("CHOICE_COUNT")
+        requirement.code === "QUIZ_QUESTION_STRUCTURE"
+          ? code.startsWith("QUESTION_COUNT_INVALID") || code.startsWith("CHOICE_COUNT_INVALID")
+          : requirement.code === "SECTION_AND_LESSON_VIDEO"
+            ? code.startsWith("SECTION_MISSING") || code.startsWith("LESSON_VIDEO_MISSING")
           : code.startsWith(requirement.code),
       ),
     })),

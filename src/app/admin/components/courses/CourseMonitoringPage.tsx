@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import type { CourseStatus } from "@/constants/colors";
-import { JOB_CATEGORIES } from "../../data/courses";
+import { getJobCategoryName, JOB_CATEGORIES } from "../../data/categories";
 import type { AdminCourse } from "../../data/courses";
 import useAdminCourses from "@/api/admin/courses/useAdminCourses";
 
@@ -33,7 +33,7 @@ export const CourseMonitoringPage = () => {
     title: course.title,
     instructorName: course.instructorName,
     categoryId: course.categoryId,
-    jobCategory: course.jobCategory,
+    jobCategory: getJobCategoryName(course.categoryId, course.jobCategory) ?? course.jobCategory,
     status: course.status,
     priceKrw: course.priceKrw,
     enrollmentCount: course.enrollmentCount,
@@ -230,7 +230,9 @@ const StatusBadge = ({ status }: StatusBadgeProps) => <CourseStatusBadge status=
 const formatKrw = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 
 const formatDate = (value: string) => {
+  if (!value) return "—";
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
     .format(date)
     .replaceAll(". ", ".")

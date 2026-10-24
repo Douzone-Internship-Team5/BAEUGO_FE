@@ -1,4 +1,5 @@
 import type { AdminUserDetail } from "@/app/admin/data/userDetails";
+import { getJobCategoryName } from "@/app/admin/data/categories";
 import type { AdminUserDetailDto } from "@/types/admin";
 
 export default function toAdminUserDetail(dto: AdminUserDetailDto): AdminUserDetail {
@@ -17,12 +18,12 @@ export default function toAdminUserDetail(dto: AdminUserDetailDto): AdminUserDet
       ? {
           kind: "LEARNER" as const,
           currentStatus: dto.onboarding.currentStatus ?? "미설정",
-          jobCategory: dto.onboarding.jobCategory ?? (dto.onboarding.categoryId ? `직무 #${dto.onboarding.categoryId}` : "미설정"),
+          jobCategory: getJobCategoryName(dto.onboarding.categoryId, dto.onboarding.jobCategory) ?? (dto.onboarding.categoryId ? `직무 #${dto.onboarding.categoryId}` : "미설정"),
           interestTopics: (dto.onboarding.interestTopicIds ?? []).map((id) => `주제 #${id}`),
         }
       : {
           kind: "INSTRUCTOR" as const,
-          jobCategory: dto.onboarding.jobCategory ?? (dto.onboarding.categoryId ? `직무 #${dto.onboarding.categoryId}` : "미설정"),
+          jobCategory: getJobCategoryName(dto.onboarding.categoryId, dto.onboarding.jobCategory) ?? (dto.onboarding.categoryId ? `직무 #${dto.onboarding.categoryId}` : "미설정"),
           lectureTopics: (dto.onboarding.lectureTopicIds ?? []).map((id) => `주제 #${id}`),
           bio: dto.onboarding.bio ?? "등록된 약력이 없습니다.",
         }
