@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import api from "@/_lib/fetcher";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { InstructorNavIcon } from "./InstructorNavIcon";
 
@@ -28,17 +29,13 @@ export const InstructorShell = ({ children }: Props) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    const accessToken = window.localStorage.getItem("accessToken");
     try {
-      if (accessToken) {
-        await fetch("/api/v1/auth/logout", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      }
+      if (useAuthStore.getState().accessToken) await api.post({ endpoint: "/auth/logout" });
     } catch {
       // Clear the local session even if the API is unavailable.
     } finally {
+      useAuthStore.getState().setLoginState(false, "", "");
+      useAuthStore.getState().setUser(null);
       window.localStorage.removeItem("accessToken");
       router.replace("/");
       router.refresh();
