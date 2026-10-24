@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { OnboardingFrame } from "../shared/OnboardingFrame";
 import { RoleOptionCard } from "./RoleOptionCard";
 
@@ -29,7 +30,11 @@ export const RoleSelection = ({ className }: Props) => (
         강의를 수강할게요
       </RoleOptionCard>
       <RoleOptionCard href="/onboarding/instructor">강의를 등록할게요</RoleOptionCard>
-      <div className="pt-2.5 text-center text-xs text-dim">BAEUGO</div>
+      <div className="pt-3 text-center text-xs text-muted">
+        이미 계정이 있으신가요?{" "}
+        <Link href="/login" className="cursor-pointer font-medium text-accent hover:underline">로그인</Link>
+      </div>
+      <div className="pt-1 text-center text-[10px] text-dim">BAEUGO</div>
     </nav>
   </OnboardingFrame>
 );
