@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
+import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 
 interface Props { className?: string }
 interface InstructorProfile {
@@ -140,7 +141,7 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
     }
   };
 
-  return <div className={`min-h-dvh pb-10 ${className}`}>
+  return <div className={`min-h-dvh pb-24 ${className}`}>
     <InstructorScreenHeader title="강사 정보 수정" />
     <main className="mx-auto max-w-2xl px-4 pt-5 md:px-8 md:pt-8">
       <header className="mb-6"><p className="hidden text-[10px] tracking-[1.4px] text-muted md:block">INSTRUCTOR PROFILE</p><h1 className="mt-1 text-xl font-medium md:mt-2">강사 정보 수정</h1><p className="mt-2 text-xs leading-5 text-muted">강사 소개와 강의 분야를 관리합니다.</p></header>
@@ -155,6 +156,7 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
         <button type="submit" disabled={isSaving || isLoading || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5} className="h-11 cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{isSaving ? "저장 중…" : "변경 사항 저장"}</button>
       </form>}
     </main>
+    <InstructorMobileNav active="profile" />
   </div>;
 };
 
