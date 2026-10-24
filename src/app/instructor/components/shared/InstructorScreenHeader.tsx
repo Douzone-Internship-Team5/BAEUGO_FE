@@ -25,7 +25,10 @@ interface StudioHeaderProps {
 export const StudioHeader = ({ title, count }: StudioHeaderProps) => (
   <header className="flex h-[60px] items-center justify-between px-5 md:h-[72px] md:border-b md:border-line md:px-8">
     {title ? (
-      <div className="text-[26px] font-light leading-[1.35] tracking-[-0.5px]">{title}{count !== undefined && <span className="ml-2 font-semibold">{count}개</span>}</div>
+      <div className="flex min-w-0 items-baseline gap-2.5 md:gap-3">
+        <span className="shrink-0 text-[11px] text-muted md:text-xs">강사 이하늘님</span>
+        <span className="truncate text-[26px] font-light leading-[1.35] tracking-[-0.5px]">{title}{count !== undefined && <span className="ml-2 font-semibold">{count}개</span>}</span>
+      </div>
     ) : (
       <div className="flex items-baseline gap-2">
         <span className="text-[15px] font-semibold tracking-[4px]">BAEUGO</span>
