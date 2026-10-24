@@ -52,7 +52,7 @@ export const StudioHeader = ({ title, count }: StudioHeaderProps) => (
             <span className="ml-2 font-semibold">{count}개</span>
           )}
         </span>
-        <span className="shrink-0 text-[15px] text-muted">강사 이하늘님</span>
+        <Link href="/instructor/profile" className="shrink-0 cursor-pointer text-[15px] text-muted transition hover:text-text">강사 이하늘님</Link>
       </div>
     ) : (
       <div className="flex items-baseline gap-2">

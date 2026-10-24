@@ -13,6 +13,7 @@ const NAVIGATION = [
   { href: "/instructor", label: "내 강좌", icon: "courses" },
   { href: "/instructor/courses/new", label: "새 강좌", icon: "new" },
   { href: "/instructor/stats", label: "통계", icon: "stats" },
+  { href: "/instructor/profile", label: "강사 정보", icon: "profile" },
 ] as const;
 
 export const InstructorShell = ({ children }: Props) => {
@@ -99,12 +100,12 @@ export const InstructorShell = ({ children }: Props) => {
 };
 
 interface InstructorNavIconProps {
-  name: "courses" | "new" | "stats";
+  name: "courses" | "new" | "stats" | "profile";
 }
 
 const InstructorNavIcon = ({ name }: InstructorNavIconProps) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {name === "courses" ? <><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H20v14H5.5A1.5 1.5 0 0 0 4 19.5z" /><path d="M4 5.5v14M8 8h8M8 11h8" /></> : name === "new" ? <><path d="M12 5v14M5 12h14" /></> : <><path d="M4 19V5M4 19h17" /><path d="m7 15 4-4 3 2 6-7" /></>}
+    {name === "courses" ? <><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H20v14H5.5A1.5 1.5 0 0 0 4 19.5z" /><path d="M4 5.5v14M8 8h8M8 11h8" /></> : name === "new" ? <><path d="M12 5v14M5 12h14" /></> : name === "stats" ? <><path d="M4 19V5M4 19h17" /><path d="m7 15 4-4 3 2 6-7" /></> : <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>}
   </svg>
 );
 
