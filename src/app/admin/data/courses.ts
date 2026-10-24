@@ -1,4 +1,5 @@
 import type { CourseStatus } from "@/constants/colors";
+export { JOB_CATEGORIES } from "./categories";
 
 export interface AdminCourse {
   courseId: number;
@@ -12,16 +13,6 @@ export interface AdminCourse {
   publishedAt: string;
   closedReason?: string;
 }
-
-export const JOB_CATEGORIES = [
-  { id: 1, name: "기획·PM" },
-  { id: 2, name: "마케팅" },
-  { id: 3, name: "데이터 분석" },
-  { id: 4, name: "개발·IT" },
-  { id: 5, name: "디자인" },
-  { id: 6, name: "사무 생산성" },
-  { id: 7, name: "커리어" },
-] as const;
 
 export const ADMIN_COURSES: AdminCourse[] = [
   {
