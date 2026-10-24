@@ -31,7 +31,9 @@ export class ApiError<TFields = Record<string, string[]>> extends Error {
 const getApiUrl = (endpoint: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_PROXY_URL?.replace(/\/+$/, "");
   if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_PROXY_URL is not configured");
+    throw new Error(
+      "API 주소(NEXT_PUBLIC_PROXY_URL)가 설정되지 않았습니다. .env.local 을 확인해 주세요.",
+    );
   }
 
   const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
