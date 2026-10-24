@@ -2,7 +2,7 @@ import { JOB_CATEGORIES } from "@/app/onboarding/data/options";
 import type { InstructorCourse, InstructorCourseDetail } from "@/app/instructor/data/courses";
 import type { InstructorCourseDetailDto, InstructorCourseItemDto, InstructorCourseStatus } from "@/types/instructor";
 
-const getCategory = (categoryId: number) => JOB_CATEGORIES.find((category) => category.id === categoryId);
+const getCategory = (categoryId: number) => JOB_CATEGORIES?.find((category) => category.id === categoryId);
 const getTopicName = (categoryId: number, topicId: number) => getCategory(categoryId)?.topics.find((topic) => topic.id === topicId)?.name ?? `주제 #${topicId}`;
 const formatDuration = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 const isCourseStatus = (status: string): status is InstructorCourseStatus => ["DRAFT", "PUBLISHED", "EDITING", "OPERATOR_HIDDEN"].includes(status);
