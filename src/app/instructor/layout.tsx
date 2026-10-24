@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { ReactNode } from "react";
 import { InstructorShell } from "./components/shared/InstructorShell";
+import InstructorQueryProvider from "./InstructorQueryProvider";
 
 interface Props {
   children: ReactNode;
@@ -13,7 +14,9 @@ export const metadata = {
 export default function InstructorLayout({ children }: Props) {
   return (
     <Suspense fallback={<InstructorShellFallback />}>
-      <InstructorShell>{children}</InstructorShell>
+      <InstructorQueryProvider>
+        <InstructorShell>{children}</InstructorShell>
+      </InstructorQueryProvider>
     </Suspense>
   );
 }
