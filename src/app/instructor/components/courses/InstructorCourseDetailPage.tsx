@@ -153,7 +153,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
                 등록된 무료 OT 영상이 없습니다.
               </p>
             )}
-            {["DRAFT", "EDITING"].includes(course.status) && (
+            {["DRAFT", "EDITING", "OPERATOR_HIDDEN"].includes(course.status) && (
               <InstructorOtVideoUpload
                 courseId={course.courseId}
                 currentTitle={course.otVideo?.title}
