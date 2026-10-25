@@ -70,8 +70,8 @@ export const InstructorCourseCreatePage = ({ className = "" }: Props) => {
         <label className="flex flex-col gap-2 text-xs font-medium">판매 가격 <span className="flex items-center rounded-[4px] border border-line bg-panel px-3"><input type="number" min="0" max="100000000" required value={priceKrw} onChange={(event) => setPriceKrw(event.target.value)} className="h-11 w-full bg-transparent text-xs font-normal outline-none" /><span className="text-xs text-muted">원</span></span></label>
         {errorMessage && <p role="alert" className="rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{errorMessage}</p>}
       </form>
+      <div className="mt-8 flex justify-center pb-6"><button type="submit" form="create-instructor-course" disabled={createMutation.isPending || !title.trim() || !description.trim() || !categoryId || !topicId} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50">{createMutation.isPending ? "저장 중…" : "저장하고 커리큘럼 만들기"}</button></div>
     </main>
-    <div className="fixed inset-x-0 bottom-[58px] z-20 border-t border-line bg-bg/95 p-3 backdrop-blur"><button type="submit" form="create-instructor-course" disabled={createMutation.isPending || !title.trim() || !description.trim() || !categoryId || !topicId} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50 md:mx-auto md:block md:max-w-2xl">{createMutation.isPending ? "저장 중…" : "저장하고 커리큘럼 만들기"}</button></div>
     <InstructorMobileNav active="new" />
   </div>;
 };
