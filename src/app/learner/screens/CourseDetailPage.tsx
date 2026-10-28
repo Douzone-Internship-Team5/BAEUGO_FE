@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button, Card } from "@/components/common";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
-import { ProgressBar, SectionTitle, Stat } from "../components/shared/LearnerUI";
+import { SectionTitle, Stat } from "../components/shared/LearnerUI";
 import { course } from "../data";
 
 const lessons = ["보고서의 목적과 구조", "데이터 정리하기", "핵심 메시지 작성", "최종 보고서 점검"];

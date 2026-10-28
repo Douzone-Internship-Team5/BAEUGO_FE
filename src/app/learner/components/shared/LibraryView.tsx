@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/common";
 import { BrandHeader } from "./LearnerHeader";
-import { ProgressBar, SectionTitle } from "./LearnerUI";
+import { ProgressBar } from "./LearnerUI";
 import { myCourses, recommendations } from "../../data";
 
 type Tab = "courses" | "likes" | "quiz";

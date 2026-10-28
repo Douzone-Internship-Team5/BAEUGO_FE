@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Chip } from "@/components/common";
+import { Chip } from "@/components/common";
 import { BrandHeader } from "../components/shared/LearnerHeader";
 import { CourseTile } from "../components/shared/LearnerUI";
 import { catalog } from "../data";
