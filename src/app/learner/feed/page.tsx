@@ -86,10 +86,14 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
   }, [active, videoSrc]);
 
   const toggleLike = () => {
+    if (like.isPending || unlike.isPending) return;
     const nextLiked = !liked;
     setLiked(nextLiked);
     const mutation = nextLiked ? like : unlike;
-    mutation.mutate(undefined, { onError: () => setLiked(!nextLiked) });
+    mutation.mutate(undefined, {
+      onSuccess: (response) => setLiked(response.isLiked),
+      onError: () => setLiked(!nextLiked),
+    });
   };
 
   const togglePlayback = () => {
@@ -138,7 +142,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
       </button>
       <div className="absolute right-5 top-[57%] z-10 flex -translate-y-1/2 flex-col items-center gap-8">
-        <button type="button" onClick={toggleLike} aria-label={liked ? "좋아요 취소" : "좋아요"} className="flex cursor-pointer flex-col items-center gap-1 text-white">
+        <button type="button" onClick={toggleLike} disabled={like.isPending || unlike.isPending} aria-label={liked ? "좋아요 취소" : "좋아요"} className="flex cursor-pointer flex-col items-center gap-1 text-white disabled:cursor-wait">
           <svg viewBox="0 0 24 24" className={`size-7 ${liked ? "fill-[#9bb5ff] text-[#9bb5ff]" : "fill-none text-white"}`} stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M20.8 8.7c0 4.1-8.8 10.1-8.8 10.1S3.2 12.8 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" /></svg>
           <span className="text-xs">{item.likeCount + (liked === item.isLiked ? 0 : liked ? 1 : -1)}</span>
         </button>

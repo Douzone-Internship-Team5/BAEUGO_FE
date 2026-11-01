@@ -1,5 +1,6 @@
 export const learningQueryKeys = {
   all: ["learning"] as const,
+  feed: () => [...learningQueryKeys.all, "feed"] as const,
   course: (courseId: number) => [...learningQueryKeys.all, "course", courseId] as const,
   enrollments: (status?: string) => [...learningQueryKeys.all, "enrollments", status ?? "ALL"] as const,
   next: (enrollmentId: number) => [...learningQueryKeys.all, "enrollment", enrollmentId, "next"] as const,
