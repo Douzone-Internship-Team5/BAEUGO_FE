@@ -19,8 +19,8 @@ export function CourseTile({ title, meta, price, href = "/learner/explore", clas
   </Card></Link>;
 }
 
-export function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="flex-1 rounded-[4px] border border-line bg-panel px-3 py-3"><p className="text-[10px] text-muted">{label}</p><p className="mt-1.5 text-base font-medium tabular-nums">{value}</p></div>;
+export function Stat({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) {
+  return <div className="flex-1 rounded-[4px] border border-line bg-panel px-3 py-3"><div className="flex items-center gap-1"><p className="text-[10px] text-muted">{label}</p>{tooltip && <span className="group relative inline-flex"><button type="button" aria-label={`${label}: ${tooltip}`} title={tooltip} className="flex size-4 items-center justify-center rounded-full text-[10px] leading-none text-muted outline-none ring-accent focus-visible:ring-1">ⓘ</button><span role="tooltip" className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-max max-w-[180px] rounded border border-line bg-text px-2 py-1.5 text-left text-[10px] leading-4 text-bg opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">{tooltip}</span></span>}</div><p className="mt-1.5 text-base font-medium tabular-nums">{value}</p></div>;
 }
 
 export function SmallBadge({ children }: { children: React.ReactNode }) {

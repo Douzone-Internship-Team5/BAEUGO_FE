@@ -6,6 +6,7 @@ import { Button, Card } from "@/components/common";
 import useCourseDetail from "@/api/learning/useCourseDetail";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 import { SectionTitle, Stat } from "../components/shared/LearnerUI";
+
 const difficultyLabel: Record<string, string> = { BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급" };
 
 export function CourseDetailPage() {
@@ -19,7 +20,7 @@ export function CourseDetailPage() {
     <LearnerHeader title="강좌 상세" backHref="/learner/explore" />
     <main className="pb-28">
       <Link href={course.otVideo ? `/learner/learn/${course.otVideo.videoId}` : "#"} aria-label="무료 OT 재생" className="flex h-[230px] items-end bg-[linear-gradient(135deg,#273247,#141619_75%)] p-5"><span className="rounded-full bg-black/40 px-3 py-1.5 text-xs">{course.otVideo ? `무료 OT · ${Math.floor(course.otVideo.durationSeconds / 60)}:${String(course.otVideo.durationSeconds % 60).padStart(2, "0")}` : "무료 OT 없음"} <span aria-hidden="true">▶</span></span></Link>
-      <section className="space-y-3 px-5 py-5"><p className="text-[11px] text-muted">{course.category.name} · {course.topic.name} · {difficultyLabel[course.difficulty] ?? course.difficulty}</p><h1 className="text-xl font-medium">{course.title}</h1><p className="text-xs leading-5 text-muted">{course.description}</p><div className="flex gap-2 pt-2"><Stat label="총 학습" value={`${Math.floor(course.totalLessonDurationSeconds / 60)}분`} /><Stat label="강의" value={`${course.totalLessonCount}개`} /><Stat label="예상 완료" value={`${course.estimatedCompletionDays}일`} /></div><p className="text-[10px] text-dim">하루 목표 기준 예상이에요</p></section>
+      <section className="space-y-3 px-5 py-5"><p className="text-[11px] text-muted">{course.category.name} · {course.topic.name} · {difficultyLabel[course.difficulty] ?? course.difficulty}</p><h1 className="text-xl font-medium">{course.title}</h1><p className="text-xs leading-5 text-muted">{course.description}</p><div className="flex gap-2 pt-2"><Stat label="총 학습" value={`${Math.floor(course.totalLessonDurationSeconds / 60)}분`} /><Stat label="강의" value={`${course.totalLessonCount}개`} /><Stat label="예상 완료" value={`${course.estimatedCompletionDays}일`} tooltip="하루 목표 기준 예상이에요" /></div></section>
       <section className="border-y border-line px-5 py-4"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-full bg-selected text-sm">{course.instructor.name.slice(0, 1)}</span><div><p className="text-sm font-medium">{course.instructor.name}</p><p className="mt-1 text-[11px] text-muted">{course.instructor.bio}</p></div></div></section>
       <section className="px-5 py-5"><SectionTitle>커리큘럼</SectionTitle><p className="mb-3 text-[10px] text-muted">총 {course.totalLessonCount}강 · 학습 진도 {course.enrollment.progressPercent}%</p><div className="space-y-2">{course.sections.flatMap((section) => section.videos.map((video) => <Card key={video.videoId} padding="sm" className="flex items-center gap-3 border border-line bg-panel"><span className="text-xs text-muted">{video.isCompleted ? "✓" : "강의"}</span><span className="flex-1 text-xs">{video.title}</span><span className="text-[10px] text-muted">{video.isLocked ? "잠김" : `${Math.floor(video.durationSeconds / 60)}분`}</span></Card>))}</div></section>
     </main>
