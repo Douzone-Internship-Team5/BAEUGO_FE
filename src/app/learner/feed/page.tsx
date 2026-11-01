@@ -99,12 +99,22 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
   const togglePlayback = () => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused) void video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-    else { video.pause(); setPlaying(false); }
+    if (video.paused)
+      void video
+        .play()
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
+    else {
+      video.pause();
+      setPlaying(false);
+    }
   };
 
   return (
-    <article ref={setCardRef} className="relative h-dvh w-full snap-start snap-always overflow-hidden bg-[#111]">
+    <article
+      ref={setCardRef}
+      className="group relative h-dvh w-full snap-start snap-always overflow-hidden bg-[#111]"
+    >
       <video
         ref={videoRef}
         src={videoSrc}
@@ -138,7 +148,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         </Link>
         <span className="text-sm font-semibold tracking-wide">무료 OT</span>
       </header>
-      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-1/2 z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 backdrop-blur-[2px]">
+      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-1/2 z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
         {playing ? (
           <svg viewBox="0 0 24 24" className="size-4 fill-current"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
         ) : (
