@@ -51,7 +51,7 @@ export function ExplorePage() {
             className="min-w-0 flex-1 bg-transparent text-xs text-text outline-none"
           />
         </label>
-        <div className="mt-4 flex gap-2 overflow-x-auto">
+        <div className="mt-4 scrollbar-hidden flex gap-2 overflow-x-auto">
           {(codes.data?.jobCategories ?? []).map((category) => (
             <Chip
               key={category.id}
@@ -70,7 +70,7 @@ export function ExplorePage() {
           ))}
         </div>
         {categoryId && (
-          <div className="mt-2 flex gap-2 overflow-x-auto">
+          <div className="mt-2 scrollbar-hidden flex gap-2 overflow-x-auto">
             {(codes.data?.topics ?? [])
               .filter((topic) => topic.categoryId === categoryId)
               .map((topic) => (
