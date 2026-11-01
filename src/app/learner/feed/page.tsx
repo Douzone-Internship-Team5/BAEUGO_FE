@@ -138,8 +138,12 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         </Link>
         <span className="text-sm font-semibold tracking-wide">무료 OT</span>
       </header>
-      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-lg backdrop-blur-[2px]">
-        {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
+      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-1/2 z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 backdrop-blur-[2px]">
+        {playing ? (
+          <svg viewBox="0 0 24 24" className="size-4 fill-current"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="size-4 fill-current"><path d="M7 4.8c0-.8.9-1.3 1.6-.9l10.2 7.2a1.1 1.1 0 0 1 0 1.8L8.6 20.1c-.7.5-1.6 0-1.6-.9V4.8Z"/></svg>
+        )}
       </button>
       <div className="absolute right-5 top-[57%] z-10 flex -translate-y-1/2 flex-col items-center gap-8">
         <button type="button" onClick={toggleLike} disabled={like.isPending || unlike.isPending} aria-label={liked ? "좋아요 취소" : "좋아요"} className="flex cursor-pointer flex-col items-center gap-1 text-white disabled:cursor-wait">
