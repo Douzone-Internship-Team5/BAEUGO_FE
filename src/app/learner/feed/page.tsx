@@ -9,6 +9,11 @@ import useVideoUnlike from "@/api/learning/useVideoUnlike";
 import useVideoView from "@/api/learning/useVideoView";
 
 type FeedItem = FeedDto["items"][number];
+const SAMPLE_VIDEO_URLS = [
+  "/sample/KakaoTalk_Video_2024-11-22-21-13-11.mp4",
+  "/sample/KakaoTalk_Video_2024-11-22-21-13-15.mp4",
+  "/sample/KakaoTalk_Video_2024-11-22-21-13-24.mp4",
+];
 
 export default function FeedPage() {
   const feed = useFeed();
@@ -43,7 +48,9 @@ export default function FeedPage() {
 function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number; rootRef: React.RefObject<HTMLElement | null> }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewedRef = useRef(false);
+  const sampleFallbackRef = useRef(false);
   const [active, setActive] = useState(false);
+  const [videoSrc, setVideoSrc] = useState(item.videoUrl);
   const [liked, setLiked] = useState(item.isLiked);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -76,7 +83,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
       video.pause();
       setPlaying(false);
     }
-  }, [active]);
+  }, [active, videoSrc]);
 
   const toggleLike = () => {
     const nextLiked = !liked;
@@ -96,7 +103,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
     <article ref={setCardRef} className="relative h-dvh w-full snap-start snap-always overflow-hidden bg-[#111]">
       <video
         ref={videoRef}
-        src={item.videoUrl}
+        src={videoSrc}
         poster={item.thumbnailUrl ?? undefined}
         autoPlay
         loop
@@ -104,6 +111,11 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         playsInline
         preload="metadata"
         onClick={togglePlayback}
+        onError={() => {
+          if (sampleFallbackRef.current) return;
+          sampleFallbackRef.current = true;
+          setVideoSrc(SAMPLE_VIDEO_URLS[index % SAMPLE_VIDEO_URLS.length]);
+        }}
         onTimeUpdate={(event) => {
           const video = event.currentTarget;
           setProgress(video.duration ? (video.currentTime / video.duration) * 100 : 0);
