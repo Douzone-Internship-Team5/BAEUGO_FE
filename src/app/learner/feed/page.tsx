@@ -36,7 +36,7 @@ export default function FeedPage() {
   }, [feed.fetchNextPage, feed.hasNextPage, feed.isFetchingNextPage]);
 
   return (
-    <main ref={scrollRef} className="mx-auto h-dvh w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-black text-white">
+    <main ref={scrollRef} className="shortform-feed-scrollbar-hidden mx-auto h-dvh w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-y-contain bg-black text-white">
       {feed.isLoading && <div className="grid h-dvh place-items-center text-sm text-white/70">OT를 불러오는 중이에요.</div>}
       {!feed.isLoading && items.length === 0 && <div className="grid h-dvh place-items-center text-sm text-white/70">재생할 무료 OT가 없습니다.</div>}
       {items.map((item, index) => <FeedVideoCard key={`${item.videoId}-${index}`} item={item} index={index} rootRef={scrollRef} />)}

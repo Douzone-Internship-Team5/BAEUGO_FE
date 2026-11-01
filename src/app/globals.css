@@ -58,3 +58,10 @@ body {
 ) {
   cursor: not-allowed;
 }
+.shortform-feed-scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.shortform-feed-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
