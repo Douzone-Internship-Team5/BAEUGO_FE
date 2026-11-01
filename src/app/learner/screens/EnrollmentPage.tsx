@@ -46,7 +46,7 @@ export function EnrollmentPage() {
 
   const submitEnrollment = () => {
     enroll.mutate(
-      { accessSource: "COURSE_DETAIL" },
+      { accessSource: "DEMO_GRANT" },
       {
         onSuccess: (data) => {
           if (data.firstVideoId ?? firstVideoId) {
