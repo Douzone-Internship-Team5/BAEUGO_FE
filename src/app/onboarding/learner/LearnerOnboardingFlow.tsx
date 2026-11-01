@@ -80,6 +80,8 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
       <OnboardingComplete
         title="수강자 설정을 마쳤어요"
         description={`${job}에 맞춘 주제와 하루 ${goal}분 목표로 시작할 준비가 됐어요.`}
+        href="/learner"
+        actionLabel="배우고 시작하기"
       />
     );
   }

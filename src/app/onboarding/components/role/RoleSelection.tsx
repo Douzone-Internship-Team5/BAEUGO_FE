@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/_lib/fetcher";
+import { useAuthStore } from "@/app/login/store/useAuthStore";
 import useSelectOnboardingRole from "@/api/onboarding/useSelectOnboardingRole";
 import type { OnboardingRole } from "@/types/onboarding";
 import { OnboardingFrame } from "../shared/OnboardingFrame";
@@ -22,10 +23,19 @@ export const RoleSelection = ({ className }: Props) => {
     if (roleMutation.isPending) return;
     setError("");
 
+    if (!useAuthStore.getState().accessToken) {
+      router.push("/login");
+      return;
+    }
+
     try {
       await roleMutation.mutateAsync(role);
       router.push(role === "LEARNER" ? "/onboarding/learner" : "/onboarding/instructor");
     } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        router.replace("/login");
+        return;
+      }
       setError(
         requestError instanceof ApiError
           ? requestError.message
