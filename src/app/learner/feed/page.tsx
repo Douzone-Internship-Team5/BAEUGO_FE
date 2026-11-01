@@ -129,14 +129,16 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
       {!distractionFree && <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(24,25,28,.86)_0%,rgba(24,25,28,.48)_25%,rgba(24,25,28,.08)_50%,rgba(15,16,18,.45)_70%,rgba(12,13,15,.97)_100%)]" />}
       {!distractionFree && <>
       <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-center px-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <Link href="/learner" aria-label="뒤로 가기" className="absolute left-5 cursor-pointer text-[32px] font-light leading-none">‹</Link>
+        <Link href="/learner" aria-label="뒤로 가기" className="absolute left-5 grid size-8 cursor-pointer place-items-center">
+          <svg viewBox="0 0 24 24" className="size-6 fill-none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="m15 4-8 8 8 8" /></svg>
+        </Link>
         <span className="text-base font-semibold tracking-wide">무료 OT</span>
         <button type="button" onClick={() => setDistractionFree(true)} aria-label="방해금지모드 켜기" className="absolute right-5 cursor-pointer rounded-full border border-white/15 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/90">방해금지</button>
       </header>
       <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-2xl backdrop-blur-[2px]">
         {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
       </button>
-      <div className="absolute right-5 top-[53%] z-10 flex -translate-y-1/2 flex-col items-center gap-7">
+      <div className="absolute right-6 top-[57%] z-10 flex -translate-y-1/2 flex-col items-center gap-10">
         <button type="button" onClick={toggleLike} aria-label={liked ? "좋아요 취소" : "좋아요"} className="flex cursor-pointer flex-col items-center gap-1.5 text-white">
           <svg viewBox="0 0 24 24" className={`size-8 ${liked ? "fill-[#9bb5ff] text-[#9bb5ff]" : "fill-none text-white"}`} stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M20.8 8.7c0 4.1-8.8 10.1-8.8 10.1S3.2 12.8 3.2 8.7A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.5Z" /></svg>
           <span className="text-sm">{item.likeCount + (liked === item.isLiked ? 0 : liked ? 1 : -1)}</span>
