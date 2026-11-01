@@ -2,7 +2,11 @@ import Link from "next/link";
 import { Card } from "@/components/common";
 import { BrandHeader } from "./LearnerHeader";
 import { ProgressBar } from "./LearnerUI";
-import { myCourses, recommendations } from "../../data";
+import useMyEnrollments from "@/api/learning/useMyEnrollments";
+import useMyLikes from "@/api/learning/useMyLikes";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/_lib/fetcher";
+import type { QuizNotesDto } from "@/types/learning";
 
 type Tab = "courses" | "likes" | "quiz";
 const TAB_LINKS = [
@@ -31,13 +35,20 @@ function CountFilters({ labels }: { labels: string[] }) {
 }
 
 function Courses() {
-  return <><CountFilters labels={["전체 3", "수강 중 2", "수료 1"]} /><div className="mt-4 space-y-3">{myCourses.map((course) => <Card key={course.title} padding="md" className="border border-line bg-panel"><div className="flex items-center justify-between"><span className="text-[10px] text-accent">{course.status}</span><span className="text-[10px] text-muted">{course.last}</span></div><h2 className="mt-2 text-sm font-medium">{course.title}</h2><div className="mt-4 flex items-center gap-3"><ProgressBar value={course.pct} className="flex-1" /><span className="text-[10px] text-muted">{course.pct}%</span></div><p className="mt-3 text-right"><Link href={course.pct === 100 ? "/learner/library/quiz" : "/learner/learn/lesson-2"} className="text-xs text-accent">{course.action} →</Link></p></Card>)}</div></>;
+  const query = useMyEnrollments();
+  const items = query.data?.enrollments ?? [];
+  const counts = query.data?.counts;
+  return <><CountFilters labels={[`전체 ${counts?.all ?? 0}`, `수강 중 ${counts?.inProgress ?? 0}`, `수료 ${counts?.completed ?? 0}`]} /><div className="mt-4 space-y-3">{items.map((course) => <Card key={course.enrollmentId} padding="md" className="border border-line bg-panel"><div className="flex items-center justify-between"><span className="text-[10px] text-accent">{course.status === "COMPLETED" ? "수료" : "수강 중"}</span><span className="text-[10px] text-muted">{course.statusMessage}</span></div><h2 className="mt-2 text-sm font-medium">{course.title}</h2><div className="mt-4 flex items-center gap-3"><ProgressBar value={course.progressPercent} className="flex-1" /><span className="text-[10px] text-muted">{course.progressPercent}%</span></div><p className="mt-3 text-right"><Link href={`/learner/courses/${course.courseId}`} className="text-xs text-accent">{course.status === "COMPLETED" ? "복습하기" : "이어서 학습"} →</Link></p></Card>)}{query.isLoading && <p className="py-8 text-center text-xs text-muted">내 강좌를 불러오는 중이에요.</p>}{!query.isLoading && items.length === 0 && <p className="py-8 text-center text-xs text-muted">수강 중인 강좌가 없습니다.</p>}</div></>;
 }
 
 function Likes() {
-  return <><CountFilters labels={["전체 4", "무료 OT 2", "강의 2"]} /><div className="mt-4 space-y-3">{[...recommendations, { tag: "강의", duration: "5:10", title: "3강. 윈도 함수 맛보기", course: "현업 SQL: 조인부터 윈도 함수까지", href: "/learner/learn/lesson-2" }].map((video) => <Link key={video.title} href={video.href}><Card padding="none" className="flex overflow-hidden border border-line bg-panel"><div className="w-[112px] shrink-0 bg-[linear-gradient(135deg,#293247,#16181b)]" /><div className="min-w-0 flex-1 p-3"><div className="flex justify-between text-[10px] text-muted"><span>{video.tag}</span><span>{video.duration}</span></div><h2 className="mt-2 text-xs font-medium leading-5">{video.title}</h2><p className="mt-1 truncate text-[10px] text-muted">{video.course}</p></div></Card></Link>)}</div></>;
+  const query = useMyLikes();
+  const videos = query.data?.likedVideos ?? [];
+  return <><CountFilters labels={[`전체 ${query.data?.totalCount ?? 0}`, `무료 OT ${videos.filter((item) => item.videoType === "OT").length}`, `강의 ${videos.filter((item) => item.videoType !== "OT").length}`]} /><div className="mt-4 space-y-3">{videos.map((video) => <Link key={video.videoId} href={`/learner/learn/${video.videoId}`}><Card padding="none" className="flex overflow-hidden border border-line bg-panel"><div className="w-[112px] shrink-0 bg-[linear-gradient(135deg,#293247,#16181b)]" /><div className="min-w-0 flex-1 p-3"><div className="flex justify-between text-[10px] text-muted"><span>{video.videoType === "OT" ? "무료 OT" : "강의"}</span><span>{Math.floor(video.durationSeconds / 60)}:{String(video.durationSeconds % 60).padStart(2, "0")}</span></div><h2 className="mt-2 text-xs font-medium leading-5">{video.videoTitle}</h2><p className="mt-1 truncate text-[10px] text-muted">{video.courseTitle}</p></div></Card></Link>)}{query.isLoading && <p className="py-8 text-center text-xs text-muted">좋아요 목록을 불러오는 중이에요.</p>}{!query.isLoading && videos.length === 0 && <p className="py-8 text-center text-xs text-muted">좋아요한 영상이 없습니다.</p>}</div></>;
 }
 
 function QuizNotes() {
-  return <><CountFilters labels={["전체 7", "복습 필요 2", "해결 5"]} /><Card padding="md" className="mt-4 border border-warning-line bg-warning-bg"><p className="text-xs font-medium">현업 SQL 강좌는 오답 2개만 풀면 수료예요</p><p className="mt-2 text-[10px] leading-4 text-muted">맞히면 오답노트에서 빠지고 수료가 바로 반영돼요</p></Card><div className="mt-3 space-y-2">{["보고서의 목적을 정의할 때 포함할 내용은?", "핵심 메시지를 배치하기 좋은 위치는?"] .map((question, i) => <Card key={question} padding="md" className="border border-line bg-panel"><div className="flex justify-between text-[10px] text-muted"><span>{i ? "일잘러의 보고서 작성법" : "현업 SQL 강좌"} · 단위 퀴즈</span><span>2번 틀림</span></div><p className="mt-3 text-xs leading-5">{question}</p><div className="mt-3 flex items-center justify-between"><span className="text-[10px] text-muted">마지막 풀이 10월 26일</span><Link href="/learner/quiz/unit-1" className="text-xs text-accent">다시 풀기</Link></div></Card>)}</div><Link href="/learner/quiz/unit-1" className="mt-4 block rounded-full bg-text py-3 text-center text-xs font-medium text-bg">복습 필요 2문제 한 번에 풀기</Link></>;
+  const query = useQuery({ queryKey: ["learning", "quiz-notes"], queryFn: async ({ signal }) => { const response = await api.get<QuizNotesDto>({ endpoint: "/me/quiz-notes", signal }); if (!response) throw new Error("오답노트 응답이 비어 있습니다."); return response.data; } });
+  const data = query.data;
+  return <><CountFilters labels={[`전체 ${data?.counts.all ?? 0}`, `복습 필요 ${data?.counts.reviewNeeded ?? 0}`, `해결 ${data?.counts.correct ?? 0}`]} />{(data?.quizNotes ?? []).map((note) => <Card key={note.recordId} padding="md" className="mt-3 border border-line bg-panel"><div className="flex justify-between text-[10px] text-muted"><span>{note.courseTitle} · {note.quizType === "UNIT" ? "단위 퀴즈" : "최종 퀴즈"}</span><span>{note.wrongCount}번 틀림</span></div><p className="mt-3 text-xs leading-5">{note.questionContent}</p><div className="mt-3 flex items-center justify-between"><span className="text-[10px] text-muted">{new Date(note.lastAnsweredAt).toLocaleDateString("ko-KR")}</span><Link href={`/learner/quiz/${note.courseId}?attemptType=WRONG_REVIEW&questionId=${note.questionId}`} className="text-xs text-accent">다시 풀기</Link></div></Card>)}{query.isLoading && <p className="py-8 text-center text-xs text-muted">오답노트를 불러오는 중이에요.</p>}{!query.isLoading && data?.quizNotes.length === 0 && <p className="py-8 text-center text-xs text-muted">복습할 퀴즈가 없습니다.</p>}</>;
 }

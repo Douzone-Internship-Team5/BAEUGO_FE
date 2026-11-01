@@ -12,10 +12,10 @@ export function ProgressBar({ value, className }: { value: number; className?: s
   </div>;
 }
 
-export function CourseTile({ title, meta, price, href = "/learner/courses/course-1" }: { title: string; meta: string; price?: string; href?: string }) {
-  return <Link href={href} className="block"><Card padding="none" className="overflow-hidden border border-line bg-card">
+export function CourseTile({ title, meta, price, href = "/learner/explore", className, instructor, stats }: { title: string; meta: string; price?: string; href?: string; className?: string; instructor?: string; stats?: string }) {
+  return <Link href={href} className={cn("block", className)}><Card padding="none" className="overflow-hidden border border-line bg-card">
     <div className="flex h-[112px] items-end bg-[linear-gradient(135deg,#252b37,#17191d_70%)] p-3"><span className="rounded-full bg-black/35 px-2.5 py-1 text-[10px] text-text-sub">{meta}</span></div>
-    <div className="p-3.5"><h3 className="text-sm font-medium leading-5">{title}</h3><p className="mt-1.5 text-[11px] text-muted">이하늘 · 초급 · 수강생 1,248</p>{price && <p className="mt-2 text-xs font-medium">{price}</p>}</div>
+    <div className="p-3.5"><h3 className="text-sm font-medium leading-5">{title}</h3>{(instructor || stats) && <p className="mt-1.5 text-[11px] text-muted">{instructor}{instructor && stats ? " · " : ""}{stats}</p>}{price && <p className="mt-2 text-xs font-medium">{price}</p>}</div>
   </Card></Link>;
 }
 
