@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button, Card } from "@/components/common";
 import useCourseDetail from "@/api/learning/useCourseDetail";
+import useCourseCompletion from "@/api/learning/useCourseCompletion";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 import { SectionTitle, Stat } from "../components/shared/LearnerUI";
 
@@ -14,6 +15,7 @@ export function CourseDetailPage() {
   const courseId = Number(params.courseId);
   const query = useCourseDetail(courseId);
   const course = query.data;
+  const completion = useCourseCompletion(courseId, !!course?.enrollment.isEnrolled).data;
   if (query.isLoading) return <main className="p-8 text-center text-sm text-muted">강좌 정보를 불러오는 중이에요.</main>;
   if (!course) return <main className="p-8 text-center text-sm text-muted">강좌 정보를 불러오지 못했습니다.</main>;
   return <>
@@ -25,6 +27,13 @@ export function CourseDetailPage() {
       <section className="px-5 py-5">
         <SectionTitle>커리큘럼</SectionTitle>
         <p className="mb-3 text-[10px] text-muted">총 {course.totalLessonCount}강 · 학습 진도 {course.enrollment.progressPercent}%</p>
+        {completion && (
+          <Card padding="sm" className={`mb-3 border text-xs ${completion.isCompleted ? "border-success-line bg-success-soft-bg" : "border-line bg-panel"}`}>
+            <p className="font-medium">{completion.isCompleted ? "수료 완료" : "수료 전"}</p>
+            <p className="mt-1 text-[11px] text-muted">{completion.message}</p>
+            {completion.redirectTarget === "LIBRARY_QUIZ_NOTES" && <Link href="/learner/library/quiz" className="mt-2 inline-block text-[11px] text-accent">오답노트에서 해결하기 →</Link>}
+          </Card>
+        )}
         <div className="space-y-2">
           {course.sections.flatMap((section) => section.videos.map((video) => {
             const videoCard = (
