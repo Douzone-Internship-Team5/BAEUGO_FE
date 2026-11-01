@@ -277,9 +277,6 @@ function FeedVideoCard({
             </div>
           </div>
           <div className="absolute inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10">
-            <p className="mb-4 text-center text-[13px] font-medium leading-5 drop-shadow">
-              {item.course.description || item.title}
-            </p>
             <div className="rounded-2xl bg-black/60 p-3.5 shadow-lg shadow-black/20 backdrop-blur-md">
               <div className="mb-3 flex items-center gap-2.5">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm">
