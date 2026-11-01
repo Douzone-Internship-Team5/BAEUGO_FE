@@ -1,0 +1,91 @@
+"use client";
+
+import { useState } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { Button, Card } from "@/components/common";
+import { getErrorMessage } from "@/_lib/fetcher";
+import useMe from "@/api/user/useMe";
+import useChangePassword from "@/api/user/useChangePassword";
+import usePaymentMethod from "@/api/user/usePaymentMethod";
+import useUpdatePaymentMethod from "@/api/user/useUpdatePaymentMethod";
+import useUpdateProfileImage from "@/api/user/useUpdateProfileImage";
+import { LearnerHeader } from "../components/shared/LearnerHeader";
+
+const inputClass = "h-11 w-full rounded-[4px] border border-line bg-panel px-3 text-xs text-text placeholder:text-dim focus:border-line-focus focus:outline-none";
+
+export function AccountSettingsPage() {
+  return <>
+    <LearnerHeader title="계정 설정" backHref="/learner/mypage" />
+    <main className="space-y-4 px-5 pb-8 pt-4">
+      <ProfileImageSection />
+      <PasswordSection />
+      <PaymentMethodSection />
+    </main>
+  </>;
+}
+
+function ProfileImageSection() {
+  const me = useMe();
+  const update = useUpdateProfileImage();
+  const name = me.data?.name?.trim() || "김배우";
+  const imageUrl = update.data?.profileImageUrl ?? me.data?.profileImageUrl;
+  return <SettingsCard title="프로필 사진">
+    <div className="flex items-center gap-4">
+      {imageUrl
+        ? <span role="img" aria-label="프로필 사진" className="size-14 shrink-0 rounded-full bg-cover bg-center" style={{ backgroundImage: `url("${imageUrl}")` }} />
+        : <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-selected text-lg">{name.slice(0, 1)}</span>}
+      <label className="cursor-pointer rounded-[4px] border border-line px-3 py-2 text-xs transition hover:border-line-focus">
+        {update.isPending ? "올리는 중…" : "사진 변경"}
+        <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={update.isPending} onChange={(event) => { const file = event.target.files?.[0]; if (file) update.mutate({ file }); event.target.value = ""; }} />
+      </label>
+    </div>
+    <p className="mt-3 text-[10px] text-muted">PNG, JPG, WEBP 이미지를 올릴 수 있어요.</p>
+    <Status error={update.error} success={update.isSuccess ? "프로필 사진을 변경했어요." : null} />
+  </SettingsCard>;
+}
+
+function PasswordSection() {
+  const change = useChangePassword();
+  const [form, setForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const mismatch = form.confirmPassword.length > 0 && form.newPassword !== form.confirmPassword;
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (mismatch) return;
+    change.mutate({ currentPassword: form.currentPassword, newPassword: form.newPassword }, { onSuccess: () => setForm({ currentPassword: "", newPassword: "", confirmPassword: "" }) });
+  };
+  return <SettingsCard title="비밀번호 변경">
+    <form onSubmit={handleSubmit} className="space-y-2.5">
+      <input type="password" autoComplete="current-password" required placeholder="현재 비밀번호" value={form.currentPassword} onChange={(event) => setForm({ ...form, currentPassword: event.target.value })} className={inputClass} />
+      <input type="password" autoComplete="new-password" required placeholder="새 비밀번호 (8자 이상, 영문·숫자 포함)" value={form.newPassword} onChange={(event) => setForm({ ...form, newPassword: event.target.value })} className={inputClass} />
+      <input type="password" autoComplete="new-password" required placeholder="새 비밀번호 확인" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className={inputClass} />
+      {mismatch && <p className="text-[10px] text-danger">새 비밀번호가 일치하지 않아요.</p>}
+      <Button type="submit" fullWidth disabled={change.isPending || mismatch}>{change.isPending ? "변경 중…" : "비밀번호 변경"}</Button>
+    </form>
+    <Status error={change.error} success={change.isSuccess ? "비밀번호를 변경했어요." : null} />
+  </SettingsCard>;
+}
+
+function PaymentMethodSection() {
+  const payment = usePaymentMethod();
+  const update = useUpdatePaymentMethod();
+  const [label, setLabel] = useState<string | null>(null);
+  const value = label ?? payment.data?.label ?? "";
+  return <SettingsCard title="결제수단">
+    <form onSubmit={(event) => { event.preventDefault(); update.mutate({ label: value.trim() }, { onSuccess: () => setLabel(null) }); }} className="space-y-2.5">
+      <input required maxLength={50} placeholder="예: 데모카드 1234" value={value} onChange={(event) => setLabel(event.target.value)} className={inputClass} />
+      <p className="text-[10px] text-muted">데모용 결제수단 이름이에요. 실제 카드 번호는 입력하지 마세요.</p>
+      <Button type="submit" fullWidth variant="outline" disabled={update.isPending || payment.isLoading || !value.trim()}>{update.isPending ? "저장 중…" : "결제수단 저장"}</Button>
+    </form>
+    <Status error={update.error ?? payment.error} success={update.isSuccess ? "결제수단을 저장했어요." : null} />
+  </SettingsCard>;
+}
+
+function SettingsCard({ title, children }: { title: string; children: ReactNode }) {
+  return <Card padding="md" className="border border-line bg-panel"><h2 className="mb-3 text-sm font-medium">{title}</h2>{children}</Card>;
+}
+
+function Status({ error, success }: { error: unknown; success: string | null }) {
+  if (error) return <p role="alert" className="mt-3 text-xs text-danger">{getErrorMessage(error)}</p>;
+  if (success) return <p role="status" className="mt-3 text-xs text-success">{success}</p>;
+  return null;
+}

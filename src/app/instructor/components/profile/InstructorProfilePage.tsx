@@ -6,6 +6,7 @@ import api, { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
+import { SettlementAccountSection } from "./SettlementAccountSection";
 
 interface Props { className?: string }
 interface InstructorProfile {
@@ -149,6 +150,7 @@ export const InstructorProfilePage = ({ className = "" }: Props) => {
         <label className="flex flex-col gap-2"><span className="flex justify-between text-xs font-medium"><span>강사 약력 <span className="text-warning">*</span></span><span className="font-normal text-muted">{profile.bio.length}/500</span></span><textarea required minLength={5} maxLength={500} rows={5} value={profile.bio} onChange={(event) => updateProfile({ bio: event.target.value })} placeholder="경력과 강의 경험을 소개해 주세요." className="resize-y rounded-[4px] border border-line bg-panel px-3 py-3 text-xs leading-5 text-text placeholder:text-dim focus:border-line-focus focus:outline-none" /><span className={`text-[10px] ${profile.bio.length > 0 && profile.bio.trim().length < 5 ? "text-danger" : "text-muted"}`}>{profile.bio.length > 0 && profile.bio.trim().length < 5 ? "약력은 5자 이상 입력해 주세요." : "강좌 상세에 표시되는 소개입니다."}</span></label>
         <button type="submit" disabled={isSaving || isLoading || !profile.categoryId || profile.lectureTopicIds.length === 0 || profile.bio.trim().length < 5} className="h-11 cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{isSaving ? "저장 중…" : "변경 사항 저장"}</button>
       </form>}
+      <SettlementAccountSection />
     </main>
     <InstructorMobileNav active="profile" />
   </div>;
