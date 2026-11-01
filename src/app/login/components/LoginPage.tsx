@@ -38,13 +38,16 @@ export const LoginPage = ({ className = "" }: Props) => {
         activeMode: user.activeMode ?? user.role ?? null,
       });
       window.localStorage.setItem("accessToken", accessToken);
+      const activeMode = user.activeMode ?? user.role;
 
       if (user.accountType === "OPERATOR") {
         router.replace("/admin/courses");
       } else if (!user.onboarded) {
         router.replace("/onboarding");
-      } else if (user.activeMode === "INSTRUCTOR") {
+      } else if (activeMode === "INSTRUCTOR") {
         router.replace("/instructor");
+      } else if (activeMode === "LEARNER") {
+        router.replace("/learner");
       } else {
         router.replace("/");
       }
