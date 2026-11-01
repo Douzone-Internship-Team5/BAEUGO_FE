@@ -53,7 +53,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
   const [videoSrc, setVideoSrc] = useState(item.videoUrl);
   const [liked, setLiked] = useState(item.isLiked);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [distractionFree, setDistractionFree] = useState(false);
   const [progress, setProgress] = useState(0);
   const like = useVideoLike(item.videoId);
   const unlike = useVideoUnlike(item.videoId);
@@ -107,7 +107,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         poster={item.thumbnailUrl ?? undefined}
         autoPlay
         loop
-        muted={muted}
+        muted
         playsInline
         preload="metadata"
         onClick={togglePlayback}
@@ -126,12 +126,13 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         }}
         className="absolute inset-0 size-full cursor-pointer object-cover"
       />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(24,25,28,.86)_0%,rgba(24,25,28,.48)_25%,rgba(24,25,28,.08)_50%,rgba(15,16,18,.45)_70%,rgba(12,13,15,.97)_100%)]" />
+      {!distractionFree && <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(24,25,28,.86)_0%,rgba(24,25,28,.48)_25%,rgba(24,25,28,.08)_50%,rgba(15,16,18,.45)_70%,rgba(12,13,15,.97)_100%)]" />}
+      {!distractionFree && <>
       <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-center px-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
         <Link href="/learner" aria-label="뒤로 가기" className="absolute left-5 cursor-pointer text-[32px] font-light leading-none">‹</Link>
         <span className="text-base font-semibold tracking-wide">무료 OT</span>
+        <button type="button" onClick={() => setDistractionFree(true)} aria-label="방해금지모드 켜기" className="absolute right-5 cursor-pointer rounded-full border border-white/15 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/90">방해금지</button>
       </header>
-      <button type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "소리 켜기" : "소리 끄기"} className="absolute right-5 top-[max(1.1rem,env(safe-area-inset-top))] z-10 cursor-pointer text-xs text-white/80">{muted ? "음소거" : "소리 켬"}</button>
       <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-2xl backdrop-blur-[2px]">
         {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
       </button>
@@ -157,6 +158,8 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         <div className="mt-3 h-1 w-full bg-white/20"><div className="h-full bg-[#9bb5ff] transition-[width]" style={{ width: `${progress}%` }} /></div>
         <p className="mt-3 text-center text-xs text-white/55">위로 넘기면 다음 OT</p>
       </div>
+      </>}
+      {distractionFree && <button type="button" onClick={() => setDistractionFree(false)} aria-label="화면 요소 다시 표시" className="absolute inset-0 z-20 cursor-pointer bg-transparent" />}
     </article>
   );
 }
