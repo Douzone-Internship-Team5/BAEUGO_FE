@@ -134,7 +134,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         </Link>
         <span className="text-sm font-semibold tracking-wide">무료 OT</span>
       </header>
-      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-16 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-xl backdrop-blur-[2px]">
+      <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-lg backdrop-blur-[2px]">
         {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
       </button>
       <div className="absolute right-5 top-[57%] z-10 flex -translate-y-1/2 flex-col items-center gap-8">
@@ -156,7 +156,7 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
         </div>
         <h1 className="text-lg font-bold leading-6">{item.course.title}</h1>
         <p className="mt-1 text-xs text-white/60">{item.course.categoryName} · {item.course.difficulty} · {item.course.priceKrw === 0 ? "무료" : `${item.course.priceKrw.toLocaleString()}원`}</p>
-        <Link href={`/learner/courses/${item.course.courseId}`} className="mt-4 flex h-14 w-full cursor-pointer items-center justify-center rounded-full bg-[#f4f3ef] text-base font-bold text-[#171719]">강좌 보러 가기</Link>
+        <Link href={`/learner/courses/${item.course.courseId}`} className="mt-3 flex h-12 w-full cursor-pointer items-center justify-center rounded-full bg-[#f4f3ef] text-sm font-bold text-[#171719]">강좌 보러 가기</Link>
         </div>
         <div className="mt-2.5 h-0.5 w-full bg-white/20"><div className="h-full bg-[#9bb5ff] transition-[width]" style={{ width: `${progress}%` }} /></div>
         <p className="mt-2 text-center text-[10px] text-white/55">위로 넘기면 다음 OT</p>
