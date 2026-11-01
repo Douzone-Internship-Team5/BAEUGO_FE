@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/_lib/fetcher";
+import { useAuthStore } from "@/app/login/store/useAuthStore";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { type TimeSlot } from "../data/options";
 import { CURRENT_STATUS_VALUES, getJobCategory, getSelectedTopicIds } from "../data/options";
-import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
 import { LearnerSituationFields } from "../components/learner/LearnerSituationFields";
@@ -30,7 +30,6 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
     { id: "commute", start: "08:00", end: "09:00", tag: "출근길" },
     { id: "bedtime", start: "21:30", end: "22:30", tag: "자기 전" },
   ]);
-  const [completed, setCompleted] = useState(false);
 
   const toggleTopic = (topic: string) => {
     setTopics((current) =>
@@ -53,6 +52,11 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
     if (step === 1 && (!situation || !job)) return;
     if (step < 3) setStep((current) => current + 1);
     else {
+      if (!useAuthStore.getState().accessToken) {
+        router.replace("/learner");
+        return;
+      }
+
       const category = getJobCategory(job);
       if (!category || goal === null) return;
 
@@ -68,23 +72,12 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
             sortOrder: index + 1,
           })),
         });
-        setCompleted(true);
+        router.replace("/learner");
       } catch {
         // The shared footer shows the mutation error.
       }
     }
   };
-
-  if (completed) {
-    return (
-      <OnboardingComplete
-        title="수강자 설정을 마쳤어요"
-        description={`${job}에 맞춘 주제와 하루 ${goal}분 목표로 시작할 준비가 됐어요.`}
-        href="/learner"
-        actionLabel="배우고 시작하기"
-      />
-    );
-  }
 
   const buttonLabel = step === 3 ? "배우고 시작하기" : "다음";
   const summary = step === 2 ? `${topics.length}개 선택했어요` : undefined;
