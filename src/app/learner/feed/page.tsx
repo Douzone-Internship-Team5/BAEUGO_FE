@@ -133,7 +133,6 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
           <svg viewBox="0 0 24 24" className="size-6 fill-none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="m15 4-8 8 8 8" /></svg>
         </Link>
         <span className="text-base font-semibold tracking-wide">무료 OT</span>
-        <button type="button" onClick={() => setDistractionFree(true)} aria-label="방해금지모드 켜기" className="absolute right-5 cursor-pointer rounded-full border border-white/15 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/90">방해금지</button>
       </header>
       <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-[40%] z-10 grid size-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 text-2xl backdrop-blur-[2px]">
         {playing ? <span className="tracking-[-.25em]">Ⅱ</span> : <span className="ml-1">▶</span>}
@@ -162,6 +161,9 @@ function FeedVideoCard({ item, index, rootRef }: { item: FeedItem; index: number
       </div>
       </>}
       {distractionFree && <button type="button" onClick={() => setDistractionFree(false)} aria-label="화면 요소 다시 표시" className="absolute inset-0 z-20 cursor-pointer bg-transparent" />}
+      <button type="button" onClick={() => setDistractionFree((value) => !value)} aria-label={distractionFree ? "방해금지모드 해제" : "방해금지모드 켜기"} className="absolute right-5 top-[max(1.25rem,env(safe-area-inset-top))] z-30 cursor-pointer rounded-full border border-white/20 bg-black/35 px-3.5 py-2 text-xs font-medium text-white/90 backdrop-blur-sm">
+        {distractionFree ? "방해금지 해제" : "방해금지"}
+      </button>
     </article>
   );
 }
