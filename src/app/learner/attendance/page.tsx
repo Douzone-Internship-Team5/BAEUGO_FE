@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, Header } from "@/components/common";
 import { Stat } from "../components/shared/LearnerUI";
 import useAttendance from "@/api/learning/useAttendance";
@@ -8,17 +8,22 @@ import useAttendance from "@/api/learning/useAttendance";
 const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function AttendancePage() {
-  const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const year = month.getFullYear();
-  const monthIndex = month.getMonth();
+  const [month, setMonth] = useState<Date | null>(null);
+  const [localToday, setLocalToday] = useState<string | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    setLocalToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
+  }, []);
+  const year = month?.getFullYear() ?? 0;
+  const monthIndex = month?.getMonth() ?? 0;
   const firstDay = new Date(year, monthIndex, 1).getDay();
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
   const attendance = useAttendance(year, monthIndex + 1);
   const attended = new Set((attendance.data?.calendarDays ?? []).filter((day) => day.isAttended).map((day) => Number(day.studyDate.slice(-2))));
-  const now = new Date();
-  const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const today = attendance.data?.calendarDays.find((day) => day.studyDate === localToday);
   const changeMonth = (step: number) => setMonth(new Date(year, monthIndex + step, 1));
+  if (!month) return <><Header title="출석 · 목표 달성" backHref="/learner" bordered className="px-5" /><main className="p-8 text-center text-sm text-muted">출석 정보를 불러오는 중이에요.</main></>;
   return <>
     <Header title="출석 · 목표 달성" backHref="/learner" bordered className="px-5" />
     <main className="space-y-5 px-5 py-5">
