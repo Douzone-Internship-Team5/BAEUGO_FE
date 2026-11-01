@@ -135,15 +135,9 @@ function FeedVideoCard({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (active) {
-      void video
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
-    } else {
-      video.pause();
-      setPlaying(false);
-    }
+    // playing 상태는 video의 onPlay/onPause 이벤트로만 갱신한다.
+    if (active) void video.play().catch(() => undefined);
+    else video.pause();
   }, [active, videoSrc]);
 
   const toggleLike = () => {
@@ -160,15 +154,8 @@ function FeedVideoCard({
   const togglePlayback = () => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused)
-      void video
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
-    else {
-      video.pause();
-      setPlaying(false);
-    }
+    if (video.paused) void video.play().catch(() => undefined);
+    else video.pause();
   };
 
   return (
@@ -186,6 +173,8 @@ function FeedVideoCard({
         playsInline
         preload="metadata"
         onClick={togglePlayback}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
         onError={() => {
           if (sampleFallbackRef.current) return;
           sampleFallbackRef.current = true;
