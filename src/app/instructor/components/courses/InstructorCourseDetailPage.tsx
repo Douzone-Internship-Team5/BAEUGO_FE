@@ -13,7 +13,7 @@ import type { InstructorCourseDetail } from "@/types/instructor";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 import { StartEditingConfirmDialog } from "./StartEditingConfirmDialog";
-import { InstructorOtVideoUpload } from "./InstructorOtVideoUpload";
+import { InstructorVideoUpload } from "./InstructorVideoUpload";
 
 interface Props {
   courseId: number;
@@ -156,8 +156,9 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
               </p>
             )}
             {["DRAFT", "EDITING", "OPERATOR_HIDDEN"].includes(course.status) && (
-              <InstructorOtVideoUpload
+              <InstructorVideoUpload
                 courseId={course.courseId}
+                videoType="OT"
                 currentTitle={course.otVideo?.title}
               />
             )}
