@@ -170,5 +170,6 @@ const formatDateTime = (value: string) => value
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Seoul",
   }).format(new Date(value))
   : "학습 기록 없음";
