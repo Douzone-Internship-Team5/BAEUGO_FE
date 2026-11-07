@@ -9,12 +9,6 @@ import useVideoUnlike from "@/api/learning/useVideoUnlike";
 import useVideoView from "@/api/learning/useVideoView";
 
 type FeedItem = FeedDto["items"][number];
-const SAMPLE_VIDEO_URLS = [
-  "/sample/KakaoTalk_Video_2024-11-22-21-13-11.mp4",
-  "/sample/KakaoTalk_Video_2024-11-22-21-13-15.mp4",
-  "/sample/KakaoTalk_Video_2024-11-22-21-13-24.mp4",
-];
-
 export default function FeedPage() {
   const feed = useFeed();
   const scrollRef = useRef<HTMLElement>(null);
@@ -61,7 +55,6 @@ export default function FeedPage() {
         <FeedVideoCard
           key={`${item.videoId}-${index}`}
           item={item}
-          index={index}
           rootRef={scrollRef}
         />
       ))}
@@ -83,18 +76,15 @@ export default function FeedPage() {
 
 function FeedVideoCard({
   item,
-  index,
   rootRef,
 }: {
   item: FeedItem;
-  index: number;
   rootRef: React.RefObject<HTMLElement | null>;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const viewedRef = useRef(false);
-  const sampleFallbackRef = useRef(false);
   const [active, setActive] = useState(false);
-  const [videoSrc, setVideoSrc] = useState(item.videoUrl);
+  const [videoError, setVideoError] = useState(false);
   const [liked, setLiked] = useState(item.isLiked);
   const [playing, setPlaying] = useState(false);
   const [distractionFree, setDistractionFree] = useState(false);
@@ -138,7 +128,7 @@ function FeedVideoCard({
     // playing 상태는 video의 onPlay/onPause 이벤트로만 갱신한다.
     if (active) void video.play().catch(() => undefined);
     else video.pause();
-  }, [active, videoSrc]);
+  }, [active]);
 
   const toggleLike = () => {
     if (like.isPending || unlike.isPending) return;
@@ -165,7 +155,7 @@ function FeedVideoCard({
     >
       <video
         ref={videoRef}
-        src={videoSrc}
+        src={item.videoUrl}
         poster={item.thumbnailUrl ?? undefined}
         autoPlay
         loop
@@ -175,11 +165,8 @@ function FeedVideoCard({
         onClick={togglePlayback}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onError={() => {
-          if (sampleFallbackRef.current) return;
-          sampleFallbackRef.current = true;
-          setVideoSrc(SAMPLE_VIDEO_URLS[index % SAMPLE_VIDEO_URLS.length]);
-        }}
+        onError={() => setVideoError(true)}
+        onLoadedData={() => setVideoError(false)}
         onTimeUpdate={(event) => {
           const video = event.currentTarget;
           setProgress(
@@ -192,6 +179,11 @@ function FeedVideoCard({
         }}
         className="absolute inset-0 size-full cursor-pointer object-cover"
       />
+      {videoError && (
+        <p role="alert" className="absolute inset-x-0 top-1/2 z-10 -translate-y-1/2 text-center text-xs text-white/80">
+          영상을 재생할 수 없어요.
+        </p>
+      )}
       {!distractionFree && (
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(24,25,28,.86)_0%,rgba(24,25,28,.48)_25%,rgba(24,25,28,.08)_50%,rgba(15,16,18,.45)_70%,rgba(12,13,15,.97)_100%)]" />
       )}

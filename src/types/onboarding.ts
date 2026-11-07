@@ -14,6 +14,8 @@ export interface OnboardingResponse {
 }
 
 export type LearnerOnboardingRequest = {
+  /** 빼고 보내면 기존 이름을 유지한다. 1~50자 */
+  name?: string;
   jobCategory: string;
   currentStatus: "JOB_SEEKER" | "EMPLOYED" | "CAREER_CHANGE";
   interestTopicIds: number[];

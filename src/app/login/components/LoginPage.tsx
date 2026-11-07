@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError } from "@/_lib/fetcher";
 import { Button } from "@/components/common/Button";
 import postLogin from "@/api/auth/postLogin";
-import { useAuthStore } from "../store/useAuthStore";
+import { saveLoginSession } from "@/_lib/session";
 
 interface Props {
   className?: string;
@@ -27,28 +27,7 @@ export const LoginPage = ({ className = "" }: Props) => {
     setIsSubmitting(true);
     try {
       const result = await postLogin({ email: email.trim(), password });
-      const { user, accessToken } = result;
-
-      useAuthStore.getState().setLoginState(true, accessToken, "");
-      useAuthStore.getState().setUser({
-        id: String(user.id),
-        email: user.email,
-        name: user.name,
-        profile_image: "",
-        activeMode: user.activeMode ?? user.role ?? null,
-      });
-      window.localStorage.setItem("accessToken", accessToken);
-      const activeMode = user.activeMode ?? user.role;
-
-      if (user.accountType === "OPERATOR") {
-        router.replace("/admin/courses");
-      } else if (activeMode === "INSTRUCTOR") {
-        router.replace(user.onboarded ? "/instructor" : "/onboarding/instructor");
-      } else if (activeMode === "LEARNER") {
-        router.replace(user.onboarded ? "/learner" : "/onboarding/learner");
-      } else {
-        router.replace("/onboarding");
-      }
+      router.replace(saveLoginSession(result));
     } catch (requestError) {
       if (requestError instanceof ApiError) {
         setError(requestError.message);

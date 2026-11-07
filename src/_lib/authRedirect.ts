@@ -1,9 +1,8 @@
-import type { MeDto } from "@/types/user";
-
 /** 화면 묶음. public은 시작·로그인·회원가입처럼 로그인 전에 쓰는 화면이다. */
 export type AuthArea = "public" | "onboarding" | "learner" | "instructor" | "admin";
 
-type AuthUser = Pick<MeDto, "accountType" | "activeMode" | "onboarded">;
+/** GET /users/me와 로그인·회원가입 응답의 user가 공통으로 가진 값 */
+type AuthUser = { accountType: string; activeMode?: string | null; onboarded?: boolean };
 
 /** 로그인한 계정이 처음 가야 할 화면. 로그인·회원가입 직후 이동과 같은 기준이다. */
 export const getHomePath = (user: AuthUser) => {

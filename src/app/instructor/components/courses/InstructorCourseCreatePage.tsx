@@ -12,12 +12,6 @@ import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 
 interface Props { className?: string }
 
-const DIFFICULTIES: Array<{ value: InstructorDifficulty; label: string }> = [
-  { value: "BEGINNER", label: "입문" },
-  { value: "INTERMEDIATE", label: "중급" },
-  { value: "ADVANCED", label: "고급" },
-];
-
 export const InstructorCourseCreatePage = ({ className = "" }: Props) => {
   const router = useRouter();
   const createMutation = useCreateInstructorCourse();
@@ -68,7 +62,7 @@ export const InstructorCourseCreatePage = ({ className = "" }: Props) => {
           <label className="flex flex-col gap-2 text-xs font-medium">직무<select required value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setTopicId(""); }} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub"><option value="">직무 선택</option>{(codes?.jobCategories ?? []).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <label className="flex flex-col gap-2 text-xs font-medium">주제<select required value={topicId} onChange={(event) => setTopicId(event.target.value)} disabled={!category} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub disabled:opacity-50"><option value="">주제 선택</option>{getTopicsOfCategory(codes, category?.id).map((topic) => <option key={topic.id} value={topic.id}>{topic.label}</option>)}</select></label>
         </div>
-        <fieldset><legend className="mb-2 text-xs font-medium">난이도</legend><div className="grid grid-cols-3 gap-2">{DIFFICULTIES.map((item) => <button key={item.value} type="button" aria-pressed={difficulty === item.value} onClick={() => setDifficulty(item.value)} className={`cursor-pointer rounded-[4px] border py-2.5 text-xs ${difficulty === item.value ? "border-accent bg-selected text-accent" : "border-line text-muted"}`}>{item.label}</button>)}</div></fieldset>
+        <fieldset><legend className="mb-2 text-xs font-medium">난이도</legend><div className="grid grid-cols-3 gap-2">{(codes?.difficulties ?? []).map((item) => <button key={item.code} type="button" aria-pressed={difficulty === item.code} onClick={() => setDifficulty(item.code as InstructorDifficulty)} className={`cursor-pointer rounded-[4px] border py-2.5 text-xs ${difficulty === item.code ? "border-accent bg-selected text-accent" : "border-line text-muted"}`}>{item.label}</button>)}</div></fieldset>
         <label className="flex flex-col gap-2 text-xs font-medium">판매 가격 <span className="flex items-center rounded-[4px] border border-line bg-panel px-3"><input type="number" min="0" max="100000000" required value={priceKrw} onChange={(event) => setPriceKrw(event.target.value)} className="h-11 w-full bg-transparent text-xs font-normal outline-none" /><span className="text-xs text-muted">원</span></span></label>
         {errorMessage && <p role="alert" className="rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">{errorMessage}</p>}
       </form>

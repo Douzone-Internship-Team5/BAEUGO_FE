@@ -4,13 +4,9 @@ import { useState } from "react";
 import { Chip } from "@/components/common";
 import useCourseSearch from "@/api/learning/useCourseSearch";
 import useCodes from "@/api/codes/useCodes";
+import { getDifficultyLabel } from "@/_lib/codes";
 import { BrandHeader } from "../components/shared/LearnerHeader";
 import { CourseTile } from "../components/shared/LearnerUI";
-const difficultyLabel: Record<string, string> = {
-  BEGINNER: "초급",
-  INTERMEDIATE: "중급",
-  ADVANCED: "고급",
-};
 
 export function ExplorePage() {
   const [query, setQuery] = useState("");
@@ -121,7 +117,7 @@ export function ExplorePage() {
             <CourseTile
               key={item.courseId}
               title={item.title}
-              meta={`${item.category.name} · ${item.topic.name} · ${difficultyLabel[item.difficulty] ?? item.difficulty}`}
+              meta={`${item.category.name} · ${item.topic.name} · ${getDifficultyLabel(codes.data, item.difficulty)}`}
               price={
                 item.isFree ? "무료" : `${item.priceKrw.toLocaleString()}원`
               }

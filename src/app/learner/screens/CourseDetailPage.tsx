@@ -1,5 +1,7 @@
 "use client";
 
+import { getDifficultyLabel } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button, Card } from "@/components/common";
@@ -8,12 +10,12 @@ import useCourseCompletion from "@/api/learning/useCourseCompletion";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 import { SectionTitle, Stat } from "../components/shared/LearnerUI";
 
-const difficultyLabel: Record<string, string> = { BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급" };
 
 export function CourseDetailPage() {
   const params = useParams<{ courseId: string }>();
   const courseId = Number(params.courseId);
   const query = useCourseDetail(courseId);
+  const { data: codes } = useCodes();
   const course = query.data;
   const completion = useCourseCompletion(courseId, !!course?.enrollment.isEnrolled).data;
   if (query.isLoading) return <main className="p-8 text-center text-sm text-muted">강좌 정보를 불러오는 중이에요.</main>;
@@ -22,7 +24,7 @@ export function CourseDetailPage() {
     <LearnerHeader title="강좌 상세" backHref="/learner/explore" />
     <main className="pb-36">
       <Link href={course.otVideo ? `/learner/learn/${course.otVideo.videoId}` : "#"} aria-label="무료 OT 재생" className="flex h-[230px] items-end bg-[linear-gradient(135deg,#273247,#141619_75%)] p-5"><span className="rounded-full bg-black/40 px-3 py-1.5 text-xs">{course.otVideo ? `무료 OT · ${Math.floor(course.otVideo.durationSeconds / 60)}:${String(course.otVideo.durationSeconds % 60).padStart(2, "0")}` : "무료 OT 없음"} <span aria-hidden="true">▶</span></span></Link>
-      <section className="space-y-3 px-5 py-5"><p className="text-[11px] text-muted">{course.category.name} · {course.topic.name} · {difficultyLabel[course.difficulty] ?? course.difficulty}</p><h1 className="text-xl font-medium">{course.title}</h1><p className="text-xs leading-5 text-muted">{course.description}</p><div className="flex gap-2 pt-2"><Stat label="총 학습" value={`${Math.floor(course.totalLessonDurationSeconds / 60)}분`} /><Stat label="강의" value={`${course.totalLessonCount}개`} /><Stat label="예상 완료" value={`${course.estimatedCompletionDays}일`} tooltip="하루 목표 기준 예상이에요" /></div></section>
+      <section className="space-y-3 px-5 py-5"><p className="text-[11px] text-muted">{course.category.name} · {course.topic.name} · {getDifficultyLabel(codes, course.difficulty)}</p><h1 className="text-xl font-medium">{course.title}</h1><p className="text-xs leading-5 text-muted">{course.description}</p><div className="flex gap-2 pt-2"><Stat label="총 학습" value={`${Math.floor(course.totalLessonDurationSeconds / 60)}분`} /><Stat label="강의" value={`${course.totalLessonCount}개`} /><Stat label="예상 완료" value={`${course.estimatedCompletionDays}일`} tooltip="하루 목표 기준 예상이에요" /></div></section>
       <section className="border-y border-line px-5 py-4"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-full bg-selected text-sm">{course.instructor.name.slice(0, 1)}</span><div><p className="text-sm font-medium">{course.instructor.name}</p><p className="mt-1 text-[11px] text-muted">{course.instructor.bio}</p></div></div></section>
       <section className="px-5 py-5">
         <SectionTitle>커리큘럼</SectionTitle>

@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Card, Header } from "@/components/common";
 import { Stat } from "../components/shared/LearnerUI";
 import useAttendance from "@/api/learning/useAttendance";
 
 const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
+const subscribeNothing = () => () => {};
+const getLocalToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
+
 export default function AttendancePage() {
-  const [month, setMonth] = useState<Date | null>(null);
-  const [localToday, setLocalToday] = useState<string | null>(null);
-  useEffect(() => {
-    const now = new Date();
-    setMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-    setLocalToday(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
-  }, []);
+  // 오늘 날짜는 브라우저 시간대 기준이라 서버 렌더에서는 null로 두고 브라우저에서만 읽는다.
+  const localToday = useSyncExternalStore(subscribeNothing, getLocalToday, () => null);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const month = localToday ? new Date(Number(localToday.slice(0, 4)), Number(localToday.slice(5, 7)) - 1 + monthOffset, 1) : null;
   const year = month?.getFullYear() ?? 0;
   const monthIndex = month?.getMonth() ?? 0;
   const firstDay = new Date(year, monthIndex, 1).getDay();
@@ -22,7 +25,7 @@ export default function AttendancePage() {
   const attendance = useAttendance(year, monthIndex + 1);
   const attended = new Set((attendance.data?.calendarDays ?? []).filter((day) => day.isAttended).map((day) => Number(day.studyDate.slice(-2))));
   const today = attendance.data?.calendarDays.find((day) => day.studyDate === localToday);
-  const changeMonth = (step: number) => setMonth(new Date(year, monthIndex + step, 1));
+  const changeMonth = (step: number) => setMonthOffset((offset) => offset + step);
   if (!month) return <><Header title="출석 · 목표 달성" backHref="/learner" bordered className="px-5" /><main className="p-8 text-center text-sm text-muted">출석 정보를 불러오는 중이에요.</main></>;
   return <>
     <Header title="출석 · 목표 달성" backHref="/learner" bordered className="px-5" />

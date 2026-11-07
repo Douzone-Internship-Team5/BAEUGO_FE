@@ -18,5 +18,8 @@ export const getJobCategoryLabel = (codes: CodesDto | undefined, categoryId?: nu
 export const getTopicsOfCategory = (codes: CodesDto | undefined, categoryId?: number | null): TopicCode[] =>
   codes?.topics.filter((topic) => topic.categoryId === categoryId) ?? [];
 
+export const getDifficultyLabel = (codes: CodesDto | undefined, difficulty: string) =>
+  codes?.difficulties.find(({ code }) => code === difficulty)?.label ?? difficulty;
+
 export const getTopicLabel = (codes: CodesDto | undefined, topicId: number) =>
   codes?.topics.find((topic) => topic.id === topicId)?.label ?? `주제 #${topicId}`;
