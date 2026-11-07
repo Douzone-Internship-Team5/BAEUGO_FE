@@ -13,28 +13,41 @@ import postPlaybackUrl from "@/api/learning/postPlaybackUrl";
 import { getErrorMessage } from "@/_lib/fetcher";
 import type { CourseDetailDto } from "@/types/learning";
 import useVideoProgressAutoSave from "./useVideoProgressAutoSave";
-import { finalQuizHref, unitQuizHref } from "../_lib/learningHref";
+import useQuizNotes from "@/api/learning/useQuizNotes";
+import { finalQuizHref, unitQuizHref, wrongReviewHref } from "../_lib/learningHref";
 
 /** 서명 재생 URL은 5분 동안 유효해서 4분마다 새로 받는다. */
 const PLAYBACK_URL_REFRESH_MS = 4 * 60 * 1000;
 
 type ShortformItem =
   | { kind: "VIDEO"; key: string; videoId: number; title: string; sectionTitle: string | null; isLocked: boolean; isCompleted: boolean }
-  | { kind: "UNIT_QUIZ" | "FINAL_QUIZ"; key: string; title: string; href: string; isLocked: boolean; isCompleted: boolean };
+  | { kind: "UNIT_QUIZ" | "FINAL_QUIZ"; key: string; title: string; href: string; isLocked: boolean; isCompleted: boolean }
+  | { kind: "WRONG_REVIEW"; key: string; title: string; href: string; count: number };
 
-/** 강좌 커리큘럼을 숏폼 순서로 편다: 섹션별 학습 영상 → 단위 퀴즈, 마지막에 종합 퀴즈. */
-const buildCourseItems = (course: CourseDetailDto): ShortformItem[] => {
+/**
+ * 강좌 커리큘럼을 숏폼 순서로 편다: 섹션별 학습 영상 → 단위 퀴즈, 마지막에 종합 퀴즈.
+ * 기획의 "오답 저장 → 재출제"에 따라, 아직 해결하지 못한 오답이 있으면 그 오답이 나온 마지막 퀴즈 바로 뒤에
+ * 오답 다시 풀기 카드를 끼워 넣는다(이 강좌의 미해결 오답 전체를 다시 출제).
+ */
+const buildCourseItems = (course: CourseDetailDto, wrongCountByQuiz: Map<number, number>): ShortformItem[] => {
   const items: ShortformItem[] = [];
+  let reviewAfter = -1;
   for (const section of [...course.sections].sort((a, b) => a.sortOrder - b.sortOrder)) {
     for (const video of [...section.videos].sort((a, b) => a.sortOrder - b.sortOrder)) {
       items.push({ kind: "VIDEO", key: `v-${video.videoId}`, videoId: video.videoId, title: video.title, sectionTitle: section.title, isLocked: video.isLocked, isCompleted: video.isCompleted });
     }
     if (section.unitQuiz) {
       items.push({ kind: "UNIT_QUIZ", key: `q-${section.sectionId}`, title: `${section.title} 단위 퀴즈`, href: unitQuizHref(section.sectionId, course.courseId), isLocked: section.unitQuiz.isLocked, isCompleted: section.unitQuiz.isCompleted });
+      if (wrongCountByQuiz.has(section.unitQuiz.quizId)) reviewAfter = items.length;
     }
   }
   if (course.finalQuiz) {
     items.push({ kind: "FINAL_QUIZ", key: "final", title: "코스 종합 퀴즈", href: finalQuizHref(course.courseId), isLocked: course.finalQuiz.isLocked, isCompleted: course.finalQuiz.isCompleted });
+    if (wrongCountByQuiz.has(course.finalQuiz.quizId)) reviewAfter = items.length;
+  }
+  const wrongTotal = [...wrongCountByQuiz.values()].reduce((sum, count) => sum + count, 0);
+  if (reviewAfter >= 0 && wrongTotal > 0) {
+    items.splice(reviewAfter, 0, { kind: "WRONG_REVIEW", key: "wrong-review", title: "틀린 문제 다시 풀기", href: wrongReviewHref(course.courseId), count: wrongTotal });
   }
   return items;
 };
@@ -50,12 +63,21 @@ export function LearnerPlayer() {
   const start = useVideoDetail(startVideoId);
   const isLesson = start.data ? start.data.sectionId !== null : false;
   const course = useCourseDetail(isLesson ? start.data?.courseId ?? 0 : 0);
+  const wrongNotes = useQuizNotes("REVIEW_NEEDED", isLesson && !!course.data?.enrollment.isEnrolled);
+  const wrongCountByQuiz = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const note of wrongNotes.data?.quizNotes ?? []) {
+      if (note.courseId === start.data?.courseId) counts.set(note.quizId, (counts.get(note.quizId) ?? 0) + 1);
+    }
+    return counts;
+  }, [start.data?.courseId, wrongNotes.data]);
 
   const items = useMemo<ShortformItem[]>(() => {
     if (!start.data) return [];
     if (!isLesson) return [{ kind: "VIDEO", key: `v-${start.data.videoId}`, videoId: start.data.videoId, title: start.data.title, sectionTitle: null, isLocked: false, isCompleted: start.data.progress.isCompleted }];
-    return course.data ? buildCourseItems(course.data) : [];
-  }, [course.data, isLesson, start.data]);
+    // 오답 카드가 늦게 끼어들어 보던 카드가 밀리지 않도록 오답노트까지 받은 뒤 카드를 만든다.
+    return course.data && !wrongNotes.isLoading ? buildCourseItems(course.data, wrongCountByQuiz) : [];
+  }, [course.data, isLesson, start.data, wrongCountByQuiz, wrongNotes.isLoading]);
 
   const scrollRef = useRef<HTMLElement>(null);
   // 방해금지 모드: 무료 OT 피드처럼 영상 위의 화면 요소를 숨긴다. 넘겨도 유지된다.
@@ -101,7 +123,7 @@ export function LearnerPlayer() {
 
   const backHref = start.data ? `/learner/courses/${start.data.courseId}` : "/learner";
   const headerTitle = start.data?.courseTitle ?? "";
-  const loading = start.isLoading || (isLesson && course.isLoading);
+  const loading = start.isLoading || (isLesson && (course.isLoading || wrongNotes.isLoading));
   const error = start.error ?? course.error;
 
   return (
@@ -124,6 +146,8 @@ export function LearnerPlayer() {
                 onEnded={() => { if (index + 1 < items.length) goTo(index + 1); }}
               />
             )
+          ) : item.kind === "WRONG_REVIEW" ? (
+            <WrongReviewCard item={item} />
           ) : (
             <QuizCard item={item} />
           )}
@@ -160,6 +184,17 @@ function LockedCard({ title, message }: { title: string; message: string }) {
         <p className="mt-4 text-base font-semibold">{title}</p>
         <p className="mt-2 text-xs text-white/60">{message}</p>
       </div>
+    </div>
+  );
+}
+
+function WrongReviewCard({ item }: { item: Extract<ShortformItem, { kind: "WRONG_REVIEW" }> }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_35%,#4a2f24,#111_70%)] px-8 text-center">
+      <span className="rounded-full border border-[#ffb38a]/40 px-3 py-1 text-[10px] text-[#ffb38a]">오답 복습</span>
+      <p className="mt-5 text-xl font-bold leading-7">틀린 문제 {item.count}개를 다시 풀어 볼까요?</p>
+      <p className="mt-2 text-xs text-white/60">맞히면 오답노트에서 해결로 바뀌고, 모두 해결해야 수료할 수 있어요.</p>
+      <Link href={item.href} className="mt-8 flex h-11 w-full max-w-[280px] items-center justify-center rounded-full bg-[#f4f3ef] text-sm font-bold text-[#171719]">다시 풀기</Link>
     </div>
   );
 }
