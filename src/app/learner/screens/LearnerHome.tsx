@@ -6,7 +6,8 @@ import useMe from "@/api/user/useMe";
 import useMyEnrollments from "@/api/learning/useMyEnrollments";
 import useToday from "@/api/learning/useToday";
 import useEnrollmentNext from "@/api/learning/useEnrollmentNext";
-import type { EnrollmentNextDto, MyEnrollmentsDto } from "@/types/learning";
+import type { MyEnrollmentsDto } from "@/types/learning";
+import { getNextLearningHref } from "../_lib/learningHref";
 import { BrandHeader } from "../components/shared/LearnerHeader";
 import { CourseTile, ProgressBar, SectionTitle } from "../components/shared/LearnerUI";
 
@@ -37,16 +38,7 @@ export function LearnerHome() {
 
 type EnrollmentItem = MyEnrollmentsDto["enrollments"][number];
 
-// 다음 학습 항목으로 바로 이동하고, 조회 전이거나 남은 항목이 없으면 강좌 상세로 보낸다.
-const getNextHref = (next: EnrollmentNextDto | undefined, courseId: number) => {
-  if (next?.nextItemType === "VIDEO" && next.videoId) return `/learner/learn/${next.videoId}`;
-  if (next?.nextItemType === "UNIT_QUIZ" && next.sectionId) return `/learner/quiz/${next.sectionId}`;
-  if (next?.nextItemType === "FINAL_QUIZ") return `/learner/quiz/${courseId}?attemptType=FINAL`;
-  if (next?.nextItemType === "WRONG_REVIEW") return `/learner/quiz/${courseId}?attemptType=WRONG_REVIEW`;
-  return `/learner/courses/${courseId}`;
-};
-
 function ContinueCourseCard({ item }: { item: EnrollmentItem }) {
   const next = useEnrollmentNext(item.enrollmentId).data;
-  return <Link href={getNextHref(next, item.courseId)}><Card padding="md" className="border border-line bg-panel"><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{item.title}</p><p className="mt-1 text-[11px] text-muted">{item.statusMessage}</p></div><span className="text-[10px] text-accent">{item.progressPercent}%</span></div><ProgressBar value={item.progressPercent} className="mt-3" /></Card></Link>;
+  return <Link href={getNextLearningHref(next, item.courseId)}><Card padding="md" className="border border-line bg-panel"><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{item.title}</p><p className="mt-1 text-[11px] text-muted">{item.statusMessage}</p></div><span className="text-[10px] text-accent">{item.progressPercent}%</span></div><ProgressBar value={item.progressPercent} className="mt-3" /></Card></Link>;
 }

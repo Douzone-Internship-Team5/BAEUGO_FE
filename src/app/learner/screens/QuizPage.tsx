@@ -10,6 +10,7 @@ import useQuizAttemptCancel from "@/api/learning/useQuizAttemptCancel";
 import type { QuizAnswerDto } from "@/types/learning";
 import { getErrorMessage } from "@/_lib/fetcher";
 import { ProgressBar } from "../components/shared/LearnerUI";
+import { continueLearningHref } from "../_lib/learningHref";
 
 export function QuizPage() {
   const params = useParams<{ quizId: string }>();
@@ -38,8 +39,9 @@ export function QuizPage() {
     cancel.mutate(attempt.attemptId, { onSuccess: () => router.push("/learner/library") });
   };
   // 종합 퀴즈는 id가 courseId라서 결과 화면에서 수료 여부를 조회한다.
+  const courseId = Number(search.get("courseId")) || undefined;
   const finishedHref = type === "FINAL" ? `/learner/quiz/result?courseId=${id}` : "/learner/library/quiz";
-  if (!question) return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4"><header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">퀴즈 완료</span></header><Card padding="md" className="mt-8 border border-success-line bg-success-soft-bg text-sm">모든 문제를 풀었어요.</Card><Link href={finishedHref} className="mt-auto block"><Button fullWidth>{type === "FINAL" ? "결과 보기" : "오답노트 보기"}</Button></Link></main>;
+  if (!question) return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4"><header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">퀴즈 완료</span></header><Card padding="md" className="mt-8 border border-success-line bg-success-soft-bg text-sm">모든 문제를 풀었어요.</Card>{!type && courseId ? <div className="mt-auto space-y-2"><Link href={continueLearningHref(courseId)} className="block"><Button fullWidth>이어서 학습</Button></Link><Link href={finishedHref} className="block"><Button fullWidth variant="outline">오답노트 보기</Button></Link></div> : <Link href={finishedHref} className="mt-auto block"><Button fullWidth>{type === "FINAL" ? "결과 보기" : "오답노트 보기"}</Button></Link>}</main>;
   return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4">
     <header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">{attempt.quizType === "UNIT" ? "단위 확인 퀴즈" : "퀴즈"}</span><span className="text-xs text-muted">{question.orderNo} / {attempt.totalQuestions}</span></header>
     <ProgressBar value={attempt.totalQuestions ? (question.orderNo / attempt.totalQuestions) * 100 : 0} className="mt-4" />
