@@ -1,4 +1,4 @@
-import type { AdminCourseDetail } from "@/app/admin/data/courseDetails";
+import type { AdminCourseDetail } from "@/types/admin";
 import type { AdminCourseDetailDto } from "@/types/admin";
 
 export default function toAdminCourseDetail(dto: AdminCourseDetailDto): AdminCourseDetail {

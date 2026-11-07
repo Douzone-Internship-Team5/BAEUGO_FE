@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/_lib/fetcher";
 import useCreateInstructorCourse from "@/api/instructor/useCreateInstructorCourse";
-import { JOB_CATEGORIES } from "@/app/onboarding/data/options";
+import { findJobCategory, getTopicsOfCategory } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
 import type { InstructorDifficulty } from "@/types/instructor";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
@@ -27,7 +28,8 @@ export const InstructorCourseCreatePage = ({ className = "" }: Props) => {
   const [difficulty, setDifficulty] = useState<InstructorDifficulty>("BEGINNER");
   const [priceKrw, setPriceKrw] = useState("0");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const category = JOB_CATEGORIES.find((item) => String(item.id) === categoryId);
+  const { data: codes } = useCodes();
+  const category = findJobCategory(codes, categoryId ? Number(categoryId) : null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,8 +65,8 @@ export const InstructorCourseCreatePage = ({ className = "" }: Props) => {
         <Field label="강좌명" required placeholder="예: 실무 보고서, 한 장으로 설득하기" maxLength={200} value={title} onChange={setTitle} />
         <label className="flex flex-col gap-2 text-xs font-medium">강좌 소개 <textarea required value={description} onChange={(event) => setDescription(event.target.value)} rows={4} maxLength={2000} placeholder="강좌에서 배우게 될 내용을 소개해 주세요." className="resize-y rounded-[4px] border border-line bg-panel px-3 py-3 text-xs font-normal text-text placeholder:text-dim focus:border-line-focus focus:outline-none" /></label>
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-2 text-xs font-medium">직무<select required value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setTopicId(""); }} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub"><option value="">직무 선택</option>{JOB_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <label className="flex flex-col gap-2 text-xs font-medium">주제<select required value={topicId} onChange={(event) => setTopicId(event.target.value)} disabled={!category} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub disabled:opacity-50"><option value="">주제 선택</option>{category?.topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}</select></label>
+          <label className="flex flex-col gap-2 text-xs font-medium">직무<select required value={categoryId} onChange={(event) => { setCategoryId(event.target.value); setTopicId(""); }} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub"><option value="">직무 선택</option>{(codes?.jobCategories ?? []).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+          <label className="flex flex-col gap-2 text-xs font-medium">주제<select required value={topicId} onChange={(event) => setTopicId(event.target.value)} disabled={!category} className="h-11 rounded-[4px] border border-line bg-panel px-2 text-xs font-normal text-text-sub disabled:opacity-50"><option value="">주제 선택</option>{getTopicsOfCategory(codes, category?.id).map((topic) => <option key={topic.id} value={topic.id}>{topic.label}</option>)}</select></label>
         </div>
         <fieldset><legend className="mb-2 text-xs font-medium">난이도</legend><div className="grid grid-cols-3 gap-2">{DIFFICULTIES.map((item) => <button key={item.value} type="button" aria-pressed={difficulty === item.value} onClick={() => setDifficulty(item.value)} className={`cursor-pointer rounded-[4px] border py-2.5 text-xs ${difficulty === item.value ? "border-accent bg-selected text-accent" : "border-line text-muted"}`}>{item.label}</button>)}</div></fieldset>
         <label className="flex flex-col gap-2 text-xs font-medium">판매 가격 <span className="flex items-center rounded-[4px] border border-line bg-panel px-3"><input type="number" min="0" max="100000000" required value={priceKrw} onChange={(event) => setPriceKrw(event.target.value)} className="h-11 w-full bg-transparent text-xs font-normal outline-none" /><span className="text-xs text-muted">원</span></span></label>

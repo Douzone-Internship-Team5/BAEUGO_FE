@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import type { CourseStatus } from "@/constants/colors";
-import { getJobCategoryName, JOB_CATEGORIES } from "../../data/categories";
-import type { AdminCourse } from "../../data/courses";
+import { getJobCategoryLabel } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
+import type { AdminCourse } from "@/types/admin";
 import useAdminCourses from "@/api/admin/courses/useAdminCourses";
 
 type StatusFilter = "ALL" | "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN";
@@ -20,6 +21,7 @@ export const CourseMonitoringPage = () => {
   const [sort, setSort] = useState<SortOption>("recent");
   const [page, setPage] = useState(1);
 
+  const { data: codes } = useCodes();
   const coursesQuery = useAdminCourses({
     q: query.trim() || undefined,
     status: status === "ALL" ? undefined : status,
@@ -33,7 +35,7 @@ export const CourseMonitoringPage = () => {
     title: course.title,
     instructorName: course.instructorName,
     categoryId: course.categoryId,
-    jobCategory: getJobCategoryName(course.categoryId, course.jobCategory) ?? course.jobCategory,
+    jobCategory: getJobCategoryLabel(codes, course.categoryId, course.jobCategory) ?? course.jobCategory,
     status: course.status,
     priceKrw: course.priceKrw,
     enrollmentCount: course.enrollmentCount,
@@ -96,8 +98,8 @@ export const CourseMonitoringPage = () => {
               className="h-11 min-w-36 cursor-pointer rounded-[4px] border border-line-strong bg-bg px-3 text-xs text-text outline-none focus:border-line-focus"
             >
               <option value="ALL">전체 직무</option>
-              {JOB_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
+              {(codes?.jobCategories ?? []).map((category) => (
+                <option key={category.id} value={category.id}>{category.label}</option>
               ))}
             </select>
           </label>

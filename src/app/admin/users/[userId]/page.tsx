@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 import useAdminUser from "@/api/admin/users/useAdminUser";
+import useCodes from "@/api/codes/useCodes";
 import toAdminUserDetail from "@/api/admin/users/toAdminUserDetail";
 import { MemberDetailPage } from "../../components/users/MemberDetailPage";
 
@@ -10,10 +11,11 @@ export default function AdminUserDetailRoute() {
   const params = useParams<{ userId: string }>();
   const userId = Number(params.userId);
   const query = useAdminUser(userId);
+  const { data: codes } = useCodes();
 
   if (query.isPending) return <DetailMessage>회원 정보를 불러오는 중…</DetailMessage>;
   if (query.isError) return <DetailMessage isError>회원 정보를 불러오지 못했습니다. {query.error.message}</DetailMessage>;
-  return <MemberDetailPage detail={toAdminUserDetail(query.data)} />;
+  return <MemberDetailPage detail={toAdminUserDetail(query.data, codes)} />;
 }
 
 interface DetailMessageProps {

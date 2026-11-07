@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { logout } from "@/_lib/logout";
 
 interface Props {
   children: ReactNode;
@@ -22,22 +23,9 @@ export const OperatorShell = ({ children }: Props) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-
-    const accessToken = window.localStorage.getItem("accessToken");
-    try {
-      if (accessToken) {
-        await fetch("/api/v1/auth/logout", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      }
-    } catch {
-      // Clear the local session even when the API is unavailable.
-    } finally {
-      window.localStorage.removeItem("accessToken");
-      router.replace("/");
-      router.refresh();
-    }
+    await logout();
+    router.replace("/");
+    router.refresh();
   };
 
   return (

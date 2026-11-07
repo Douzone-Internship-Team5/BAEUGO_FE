@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import api from "@/_lib/fetcher";
+import { logout } from "@/_lib/logout";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { InstructorNavIcon } from "./InstructorNavIcon";
 
@@ -17,6 +17,7 @@ const NAVIGATION = [
   { href: "/instructor/courses/new", label: "새 강좌", icon: "new" },
   { href: "/instructor/stats", label: "통계", icon: "stats" },
   { href: "/instructor/profile", label: "강사 정보", icon: "profile" },
+  { href: "/instructor/account", label: "계정 설정", icon: "settings" },
 ] as const;
 
 export const InstructorShell = ({ children }: Props) => {
@@ -29,17 +30,9 @@ export const InstructorShell = ({ children }: Props) => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    try {
-      if (useAuthStore.getState().accessToken) await api.post({ endpoint: "/auth/logout" });
-    } catch {
-      // Clear the local session even if the API is unavailable.
-    } finally {
-      useAuthStore.getState().setLoginState(false, "", "");
-      useAuthStore.getState().setUser(null);
-      window.localStorage.removeItem("accessToken");
-      router.replace("/");
-      router.refresh();
-    }
+    await logout();
+    router.replace("/");
+    router.refresh();
   };
 
   return (

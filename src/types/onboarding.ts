@@ -34,3 +34,11 @@ export type InstructorOnboardingRequest = {
 export type SaveOnboardingRequest =
   | LearnerOnboardingRequest
   | InstructorOnboardingRequest;
+
+// 화면에서 쓰는 형태 (API 응답을 변환한 값)
+export type TimeSlot = {
+  id: string;
+  start: string;
+  end: string;
+  tag: string;
+};

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { ReactNode } from "react";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { OperatorShell } from "./components/OperatorShell";
 import AdminQueryProvider from "./AdminQueryProvider";
 
@@ -11,7 +12,9 @@ export default function AdminLayout({ children }: Props) {
   return (
     <Suspense fallback={<AdminShellFallback />}>
       <AdminQueryProvider>
-        <OperatorShell>{children}</OperatorShell>
+        <AuthGuard area="admin">
+          <OperatorShell>{children}</OperatorShell>
+        </AuthGuard>
       </AdminQueryProvider>
     </Suspense>
   );

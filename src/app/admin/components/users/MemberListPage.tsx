@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import useAdminUsers from "@/api/admin/users/useAdminUsers";
-import type { AdminUser, MemberRole } from "../../data/users";
+import type { AdminUser, MemberRole } from "@/types/admin";
 
 type RoleFilter = "ALL" | MemberRole;
 const PAGE_SIZE = 5;

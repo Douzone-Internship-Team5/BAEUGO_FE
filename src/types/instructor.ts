@@ -1,3 +1,5 @@
+import type { CourseStatus } from "@/constants/colors";
+
 export type InstructorCourseStatus = "DRAFT" | "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN";
 export type InstructorDifficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -182,4 +184,38 @@ export interface InstructorStatsDto {
     quizResponseRate: number | null;
     quizCorrectRate: number | null;
   }> | null;
+}
+
+// 화면에서 쓰는 형태 (API 응답을 변환한 값)
+export interface InstructorCourse {
+  courseId: number;
+  title: string;
+  summary: string;
+  category: string;
+  topic: string;
+  status: CourseStatus;
+  priceKrw: number;
+  enrollmentCount: number;
+  sectionCount: number;
+  lessonCount: number;
+  lessonViews: number;
+  estimatedRevenue: number;
+  publishedAt: string | null;
+  processing: { completed: number; total: number };
+}
+
+export interface InstructorSection {
+  sectionId: number;
+  title: string;
+  videos: Array<{ videoId: number; title: string; duration: string; transcriptReviewed: boolean }>;
+  quiz: { status: "COMPLETED" | "PROCESSING" | "PENDING"; reviewed: boolean };
+}
+
+export interface InstructorCourseDetail extends InstructorCourse {
+  description: string;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  otVideo: { videoId: number; title: string; duration: string; transcriptReviewed: boolean } | null;
+  sections: InstructorSection[];
+  finalQuiz: { status: "COMPLETED" | "PROCESSING" | "PENDING"; reviewed: boolean };
+  publishRequirements: Array<{ label: string; complete: boolean }>;
 }

@@ -1,4 +1,7 @@
-import { getJobCategory } from "../../data/options";
+"use client";
+
+import { findJobCategoryByLabel, getTopicsOfCategory } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
 import { SelectionChipGroup } from "../shared/SelectionChipGroup";
 
 interface Props {
@@ -12,15 +15,16 @@ export const LearnerTopicFields = ({
   selectedTopics,
   onToggleTopic,
 }: Props) => {
-  const category = getJobCategory(job);
+  const { data: codes } = useCodes();
+  const category = findJobCategoryByLabel(codes, job);
 
   return (
     <div className="flex flex-col gap-6">
       {category && (
         <SelectionChipGroup
-          label={category.name}
+          label={category.label}
           hint="관심 주제"
-          options={category.topics.map(({ name }) => name)}
+          options={getTopicsOfCategory(codes, category.id).map(({ label }) => label)}
           mode="checkbox"
           selected={selectedTopics}
           onChange={(topic) => onToggleTopic(topic)}

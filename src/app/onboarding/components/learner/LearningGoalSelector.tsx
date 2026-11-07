@@ -1,4 +1,6 @@
-import { LEARNING_GOALS } from "../../data/options";
+"use client";
+
+import useCodes from "@/api/codes/useCodes";
 import { cn } from "@/_lib/cn";
 
 interface Props {
@@ -6,10 +8,12 @@ interface Props {
   onChange: (value: number) => void;
 }
 
-export const LearningGoalSelector = ({ value, onChange }: Props) => (
+export const LearningGoalSelector = ({ value, onChange }: Props) => {
+  const { data: codes } = useCodes();
+  return (
   <fieldset className="flex flex-col gap-3">
     <div className="grid grid-cols-3 gap-2">
-      {LEARNING_GOALS.map((minutes) => (
+      {(codes?.dailyGoalMinutes ?? []).map((minutes) => (
         <label
           key={minutes}
           className={cn(
@@ -33,4 +37,5 @@ export const LearningGoalSelector = ({ value, onChange }: Props) => (
       ))}
     </div>
   </fieldset>
-);
+  );
+};

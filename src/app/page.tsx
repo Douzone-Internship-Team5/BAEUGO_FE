@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { RoleSelection } from "./onboarding/components/role/RoleSelection";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <RoleSelection />;
+  return (
+    <AuthGuard area="public">
+      <RoleSelection />
+    </AuthGuard>
+  );
 }

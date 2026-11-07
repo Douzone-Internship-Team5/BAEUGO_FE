@@ -1,3 +1,5 @@
+import type { CourseStatus } from "@/constants/colors";
+
 export type AdminRole = "LEARNER" | "INSTRUCTOR";
 export type AdminCourseStatus = "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN";
 
@@ -161,4 +163,127 @@ export interface AdminRepublishResponse {
   courseId: number;
   status: AdminCourseStatus;
   publishedAt: string;
+}
+
+// 화면에서 쓰는 형태 (API 응답을 변환한 값)
+export type MemberRole = "LEARNER" | "INSTRUCTOR";
+
+export interface AdminUser {
+  userId: number;
+  email: string;
+  name: string;
+  accountType: "MEMBER";
+  role: MemberRole;
+  activeMode: MemberRole;
+  isActive: boolean;
+}
+
+export interface AdminCourse {
+  courseId: number;
+  title: string;
+  instructorName: string;
+  categoryId: number;
+  jobCategory: string;
+  status: Extract<CourseStatus, "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN">;
+  priceKrw: number;
+  enrollmentCount: number;
+  publishedAt: string;
+  closedReason?: string;
+}
+
+export interface TranscriptSegment {
+  id: number;
+  seq: number;
+  startMs: number;
+  endMs: number;
+  content: string;
+}
+
+export interface ReviewVideo {
+  videoId: number;
+  videoType: "OT" | "LESSON";
+  title: string;
+  durationSeconds: number;
+  sortOrder: number;
+  videoUrl: string;
+  sttStatus: "COMPLETED" | "PROCESSING" | "FAILED";
+  transcriptReviewedAt: string | null;
+  segments: TranscriptSegment[];
+}
+
+export interface ReviewQuestion {
+  questionId: number;
+  orderNo: number;
+  generatedBy: "AI" | "INSTRUCTOR";
+  content: string;
+  choices: string[];
+  correctChoiceNo: number;
+  explanation: string;
+}
+
+export interface ReviewQuiz {
+  quizId: number;
+  quizType: "UNIT" | "FINAL";
+  aiStatus: string | null;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  questions: ReviewQuestion[];
+}
+
+export interface ReviewSection {
+  sectionId: number;
+  title: string;
+  sortOrder: number;
+  videos: ReviewVideo[];
+  unitQuiz: ReviewQuiz | null;
+}
+
+export interface AdminCourseDetail {
+  course: AdminCourse;
+  description: string;
+  topicName: string;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  instructor: {
+    id: number;
+    name: string;
+    email: string;
+    bio: string;
+  };
+  totalLessonDurationSeconds: number;
+  totalLessonCount: number;
+  otVideo: ReviewVideo | null;
+  sections: ReviewSection[];
+  finalQuiz: ReviewQuiz | null;
+}
+
+export interface AdminUserDetail {
+  user: AdminUser;
+  onboarding:
+    | {
+        kind: "LEARNER";
+        currentStatus: string;
+        jobCategory: string;
+        interestTopics: string[];
+      }
+    | {
+        kind: "INSTRUCTOR";
+        jobCategory: string;
+        lectureTopics: string[];
+        bio: string;
+      } | null;
+  learningSummary?: {
+    inProgressCount: number;
+    completedCount: number;
+    lastStudiedAt: string;
+    attendanceStreak: number;
+  };
+  instructorSummary?: {
+    courseCount: {
+      DRAFT: number;
+      PUBLISHED: number;
+      EDITING: number;
+      OPERATOR_HIDDEN: number;
+    };
+    totalEnrollments: number;
+  };
 }

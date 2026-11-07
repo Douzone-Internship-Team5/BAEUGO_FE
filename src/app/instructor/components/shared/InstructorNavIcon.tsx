@@ -1,4 +1,4 @@
-export type InstructorNavIconName = "courses" | "new" | "stats" | "profile";
+export type InstructorNavIconName = "courses" | "new" | "stats" | "profile" | "settings";
 
 interface Props {
   name: InstructorNavIconName;
@@ -24,6 +24,8 @@ export const InstructorNavIcon = ({ name, className = "" }: Props) => (
       <><path d="M12 5v14M5 12h14" /></>
     ) : name === "stats" ? (
       <><path d="M4 19V5M4 19h17" /><path d="m7 15 4-4 3 2 6-7" /></>
+    ) : name === "settings" ? (
+      <><circle cx="12" cy="12" r="3" /><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8" /></>
     ) : (
       <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>
     )}
