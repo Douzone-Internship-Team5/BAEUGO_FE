@@ -29,6 +29,8 @@ function ProfileImageSection() {
   const update = useUpdateProfileImage();
   const name = me.data?.name?.trim() || "김배우";
   const imageUrl = update.data?.profileImageUrl ?? me.data?.profileImageUrl;
+  const presets = [1, 2, 3, 4];
+  const selectedPreset = Number((update.data?.profileImageKey ?? me.data?.profileImageKey)?.match(/presets\/(\d+)\.png$/)?.[1]);
   return <SettingsCard title="프로필 사진">
     <div className="flex items-center gap-4">
       {imageUrl
@@ -39,7 +41,13 @@ function ProfileImageSection() {
         <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={update.isPending} onChange={(event) => { const file = event.target.files?.[0]; if (file) update.mutate({ file }); event.target.value = ""; }} />
       </label>
     </div>
-    <p className="mt-3 text-[10px] text-muted">PNG, JPG, WEBP 이미지를 올릴 수 있어요.</p>
+    <p className="mt-4 text-xs font-medium">기본 프로필</p>
+    <div className="mt-2 flex gap-3" role="group" aria-label="기본 프로필 선택">
+      {presets.map((presetId) => <button key={presetId} type="button" aria-label={`기본 프로필 ${presetId}번`} aria-pressed={selectedPreset === presetId} disabled={update.isPending} onClick={() => update.mutate({ presetId })} className={`size-14 overflow-hidden rounded-full border-2 transition ${selectedPreset === presetId ? "border-accent ring-2 ring-accent/20" : "border-line hover:border-line-focus"}`}>
+        <span role="img" aria-label={`프로필 ${presetId}`} className="block size-full bg-cover bg-center" style={{ backgroundImage: `url("/api/v1/media/profiles/presets/${presetId}.png")` }} />
+      </button>)}
+    </div>
+    <p className="mt-3 text-[10px] text-muted">PNG, JPG, WEBP 사진을 올리거나 기본 프로필을 선택할 수 있어요.</p>
     <Status error={update.error} success={update.isSuccess ? "프로필 사진을 변경했어요." : null} />
   </SettingsCard>;
 }
