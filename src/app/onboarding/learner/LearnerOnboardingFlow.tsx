@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/_lib/fetcher";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
-import { type TimeSlot } from "../data/options";
+import { type TimeSlot } from "@/types/onboarding";
 import { findJobCategoryByLabel, getTopicIdsByLabels } from "@/_lib/codes";
 import useCodes from "@/api/codes/useCodes";
 import type { LearnerOnboardingRequest } from "@/types/onboarding";

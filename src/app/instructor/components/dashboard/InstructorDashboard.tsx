@@ -6,7 +6,7 @@ import { CourseStatusBadge } from "@/components/common";
 import useInstructorCourses from "@/api/instructor/useInstructorCourses";
 import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourse } from "@/api/instructor/toInstructorCourse";
-import { COURSE_STATUS_FILTERS } from "../../data/courses";
+import { COURSE_STATUS_FILTERS } from "@/constants/courseStatusFilters";
 import { InstructorDashboardCourseReadiness } from "./InstructorDashboardCourseReadiness";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { StudioHeader } from "../shared/InstructorScreenHeader";

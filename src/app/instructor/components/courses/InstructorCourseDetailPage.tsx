@@ -9,7 +9,7 @@ import useInstructorCourseStatus from "@/api/instructor/useInstructorCourseStatu
 import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourseDetail } from "@/api/instructor/toInstructorCourse";
 import { ApiError } from "@/_lib/fetcher";
-import type { InstructorCourseDetail } from "../../data/courses";
+import type { InstructorCourseDetail } from "@/types/instructor";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 import { StartEditingConfirmDialog } from "./StartEditingConfirmDialog";

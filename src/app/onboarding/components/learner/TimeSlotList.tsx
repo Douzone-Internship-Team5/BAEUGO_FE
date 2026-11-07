@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TimeSlot } from "../../data/options";
+import type { TimeSlot } from "@/types/onboarding";
 
 interface Props {
   slots: TimeSlot[];

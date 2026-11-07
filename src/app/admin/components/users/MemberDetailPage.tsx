@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AdminUserDetail } from "../../data/userDetails";
+import type { AdminUserDetail } from "@/types/admin";
 
 interface Props {
   detail: AdminUserDetail;

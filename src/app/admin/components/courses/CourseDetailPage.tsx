@@ -7,7 +7,7 @@ import useAdminCourseUnpublish from "@/api/admin/courses/useAdminCourseUnpublish
 import useAdminCourseRepublish from "@/api/admin/courses/useAdminCourseRepublish";
 import usePlaybackUrl from "@/api/learning/usePlaybackUrl";
 import { ApiError, getErrorMessage } from "@/_lib/fetcher";
-import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "../../data/courseDetails";
+import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "@/types/admin";
 
 interface Props {
   initialDetail: AdminCourseDetail;

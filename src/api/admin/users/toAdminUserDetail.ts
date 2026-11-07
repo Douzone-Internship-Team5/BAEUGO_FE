@@ -1,4 +1,4 @@
-import type { AdminUserDetail } from "@/app/admin/data/userDetails";
+import type { AdminUserDetail } from "@/types/admin";
 import { getJobCategoryLabel, getTopicLabel } from "@/_lib/codes";
 import type { CodesDto } from "@/types/codes";
 import type { AdminUserDetailDto } from "@/types/admin";

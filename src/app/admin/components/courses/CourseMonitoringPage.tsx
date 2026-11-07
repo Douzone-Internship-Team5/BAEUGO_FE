@@ -6,7 +6,7 @@ import { CourseStatusBadge } from "@/components/common";
 import type { CourseStatus } from "@/constants/colors";
 import { getJobCategoryLabel } from "@/_lib/codes";
 import useCodes from "@/api/codes/useCodes";
-import type { AdminCourse } from "../../data/courses";
+import type { AdminCourse } from "@/types/admin";
 import useAdminCourses from "@/api/admin/courses/useAdminCourses";
 
 type StatusFilter = "ALL" | "PUBLISHED" | "EDITING" | "OPERATOR_HIDDEN";

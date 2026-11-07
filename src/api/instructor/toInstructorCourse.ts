@@ -1,6 +1,6 @@
 import { getJobCategoryLabel, getTopicLabel } from "@/_lib/codes";
 import type { CodesDto } from "@/types/codes";
-import type { InstructorCourse, InstructorCourseDetail } from "@/app/instructor/data/courses";
+import type { InstructorCourse, InstructorCourseDetail } from "@/types/instructor";
 import type { InstructorCourseDetailDto, InstructorCourseItemDto, InstructorCourseStatus } from "@/types/instructor";
 
 const formatDuration = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;

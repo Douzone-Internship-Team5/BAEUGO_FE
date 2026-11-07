@@ -7,8 +7,8 @@ import useInstructorCourses from "@/api/instructor/useInstructorCourses";
 import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourse } from "@/api/instructor/toInstructorCourse";
 import type { CourseStatus } from "@/constants/colors";
-import { COURSE_STATUS_FILTERS } from "../../data/courses";
-import type { InstructorCourse } from "../../data/courses";
+import { COURSE_STATUS_FILTERS } from "@/constants/courseStatusFilters";
+import type { InstructorCourse } from "@/types/instructor";
 
 type StatusFilter = "ALL" | CourseStatus;
 

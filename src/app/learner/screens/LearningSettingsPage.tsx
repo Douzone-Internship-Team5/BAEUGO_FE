@@ -11,7 +11,7 @@ import { learningQueryKeys } from "@/api/learning/queryKeys";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { userQueryKeys } from "@/api/user/queryKeys";
 import useMe from "@/api/user/useMe";
-import type { TimeSlot } from "@/app/onboarding/data/options";
+import type { TimeSlot } from "@/types/onboarding";
 import { TimeSlotList } from "@/app/onboarding/components/learner/TimeSlotList";
 import type { LearnerOnboardingRequest } from "@/types/onboarding";
 import type { CodesDto } from "@/types/codes";
