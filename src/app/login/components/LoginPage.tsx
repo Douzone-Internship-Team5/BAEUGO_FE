@@ -123,7 +123,7 @@ export const LoginPage = ({ className = "" }: Props) => {
         </form>
 
         <div className="mt-7 border-t border-white/[0.08] pt-5 text-center">
-          <p className="text-xs text-[#858c98]">계정이 없으신가요? <span className="text-[#c5cad3]">회원가입은 준비 중입니다.</span></p>
+          <p className="text-xs text-[#858c98]">계정이 없으신가요? <Link href="/signup" className="font-medium text-[#c5cad3] hover:text-white">회원가입</Link></p>
           <Link href="/" className="mt-5 inline-flex min-h-9 items-center justify-center rounded-md px-3 text-xs text-[#aab1bd] transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#83a8ff]">시작 화면으로</Link>
         </div>
       </section>
