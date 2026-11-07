@@ -5,6 +5,13 @@ export const findJobCategory = (codes: CodesDto | undefined, categoryId?: number
   codes?.jobCategories.find((category) =>
     (categoryId != null && category.id === categoryId) || (categoryCode != null && category.code === categoryCode));
 
+export const findJobCategoryByLabel = (codes: CodesDto | undefined, label: string) =>
+  codes?.jobCategories.find((category) => category.label === label);
+
+/** 화면에서 이름으로 고른 주제를 API에 보낼 id로 바꾼다. */
+export const getTopicIdsByLabels = (codes: CodesDto | undefined, categoryId: number, labels: string[]) =>
+  getTopicsOfCategory(codes, categoryId).filter(({ label }) => labels.includes(label)).map(({ id }) => id);
+
 export const getJobCategoryLabel = (codes: CodesDto | undefined, categoryId?: number | null, categoryCode?: string | null) =>
   findJobCategory(codes, categoryId, categoryCode)?.label;
 

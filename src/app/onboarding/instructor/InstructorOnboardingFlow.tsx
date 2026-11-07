@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/_lib/fetcher";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
-import { getJobCategory, getSelectedTopicIds } from "../data/options";
+import { findJobCategoryByLabel, getTopicIdsByLabels } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
 import { OnboardingComplete } from "../components/shared/OnboardingComplete";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
@@ -19,6 +20,7 @@ interface Props {
 export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
   const saveMutation = useSaveOnboarding();
+  const { data: codes } = useCodes();
   const [step, setStep] = useState(Math.min(2, Math.max(1, initialStep)));
   const [job, setJob] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
@@ -46,13 +48,13 @@ export const InstructorOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const handleNext = async () => {
     if (step === 1) setStep(2);
     else {
-      const category = getJobCategory(job);
+      const category = findJobCategoryByLabel(codes, job);
       if (!category) return;
 
       try {
         await saveMutation.mutateAsync({
           jobCategory: category.code,
-          lectureTopicIds: getSelectedTopicIds(job, topics),
+          lectureTopicIds: getTopicIdsByLabels(codes, category.id, topics),
           bio: bio.trim(),
         });
         setCompleted(true);

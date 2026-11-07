@@ -1,4 +1,6 @@
-import { JOB_OPTIONS, SITUATION_OPTIONS } from "../../data/options";
+"use client";
+
+import useCodes from "@/api/codes/useCodes";
 import { RadioCardGroup } from "../shared/RadioCardGroup";
 import { SelectionChipGroup } from "../shared/SelectionChipGroup";
 
@@ -14,13 +16,15 @@ export const LearnerSituationFields = ({
   job,
   onSituationChange,
   onJobChange,
-}: Props) => (
+}: Props) => {
+  const { data: codes } = useCodes();
+  return (
   <div className="flex flex-col gap-7">
     <section className="flex flex-col gap-3" aria-labelledby="situation-heading">
       <h2 id="situation-heading" className="text-[15px] font-medium">현재 상황</h2>
       <RadioCardGroup
         label="현재 상황"
-        options={SITUATION_OPTIONS}
+        options={codes?.currentStatuses.map(({ label }) => label) ?? []}
         value={situation}
         onChange={onSituationChange}
       />
@@ -28,10 +32,11 @@ export const LearnerSituationFields = ({
     <SelectionChipGroup
       label="희망 직무"
       hint="필수 · 하나만 골라 주세요"
-      options={JOB_OPTIONS}
+      options={codes?.jobCategories.map(({ label }) => label) ?? []}
       mode="radio"
       selected={[job]}
       onChange={(value) => onJobChange(value)}
     />
   </div>
-);
+  );
+};

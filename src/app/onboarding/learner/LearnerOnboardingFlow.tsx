@@ -6,7 +6,9 @@ import { getErrorMessage } from "@/_lib/fetcher";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { type TimeSlot } from "../data/options";
-import { CURRENT_STATUS_VALUES, getJobCategory, getSelectedTopicIds } from "../data/options";
+import { findJobCategoryByLabel, getTopicIdsByLabels } from "@/_lib/codes";
+import useCodes from "@/api/codes/useCodes";
+import type { LearnerOnboardingRequest } from "@/types/onboarding";
 import { OnboardingStepIntro } from "../components/shared/OnboardingStepIntro";
 import { OnboardingStepScreen } from "../components/shared/OnboardingStepScreen";
 import { LearnerSituationFields } from "../components/learner/LearnerSituationFields";
@@ -21,6 +23,7 @@ interface Props {
 export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
   const router = useRouter();
   const saveMutation = useSaveOnboarding();
+  const { data: codes } = useCodes();
   const [step, setStep] = useState(Math.min(3, Math.max(1, initialStep)));
   const [situation, setSituation] = useState("");
   const [job, setJob] = useState("");
@@ -57,14 +60,15 @@ export const LearnerOnboardingFlow = ({ initialStep = 1 }: Props) => {
         return;
       }
 
-      const category = getJobCategory(job);
-      if (!category || goal === null) return;
+      const category = findJobCategoryByLabel(codes, job);
+      const currentStatus = codes?.currentStatuses.find(({ label }) => label === situation)?.code;
+      if (!category || !currentStatus || goal === null) return;
 
       try {
         await saveMutation.mutateAsync({
           jobCategory: category.code,
-          currentStatus: CURRENT_STATUS_VALUES[situation as keyof typeof CURRENT_STATUS_VALUES],
-          interestTopicIds: getSelectedTopicIds(job, topics),
+          currentStatus: currentStatus as LearnerOnboardingRequest["currentStatus"],
+          interestTopicIds: getTopicIdsByLabels(codes, category.id, topics),
           dailyGoalMinutes: goal,
           timeSlots: slots.map((slot, index) => ({
             startTime: `${slot.start}:00`,
