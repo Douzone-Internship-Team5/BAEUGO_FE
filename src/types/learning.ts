@@ -27,6 +27,7 @@ export interface VideoDetailDto {
   segments: Array<{ id: number; seq: number; startMs: number; endMs: number; content: string }>;
   navigation: { prevVideoId: number | null; nextItemType: string | null; nextItemId: number | null; isNextUnlocked: boolean };
 }
+export interface PlaybackUrlDto { videoId: number; playbackUrl: string; expiresAt: string }
 export interface VideoViewDto { videoId: number; viewDate: string; isIncremented: boolean; viewCount: number }
 export interface VideoViewRequest { playedSeconds: number }
 export interface VideoProgressRequest {
