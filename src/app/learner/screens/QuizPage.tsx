@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button, Card } from "@/components/common";
@@ -10,7 +11,7 @@ import useQuizAttemptCancel from "@/api/learning/useQuizAttemptCancel";
 import type { QuizAnswerDto } from "@/types/learning";
 import { getErrorMessage } from "@/_lib/fetcher";
 import { ProgressBar } from "../components/shared/LearnerUI";
-import { continueLearningHref } from "../_lib/learningHref";
+import { continueLearningHref, wrongReviewHref } from "../_lib/learningHref";
 
 export function QuizPage() {
   const params = useParams<{ quizId: string }>();
@@ -23,29 +24,54 @@ export function QuizPage() {
   const query = useQuizAttempt(id, type, questionId);
   const [selected, setSelected] = useState<number | null>(null);
   const [answer, setAnswer] = useState<QuizAnswerDto | null>(null);
+  // 이번 응시에서 틀린 문항 수. 끝 화면에서 바로 다시 풀 수 있게 안내한다.
+  const [wrongCount, setWrongCount] = useState(0);
+  const queryClient = useQueryClient();
   // 응답의 questions에는 전체 문항이 들어 있으므로 지금 풀 순번(nextOrderNo)의 문항을 보여 준다.
   // 다음 문항은 답안 제출 응답의 nextOrderNo로 넘기고, 다시 조회하지 않는다(완료된 응시를 다시 조회하면 새 응시가 시작될 수 있음).
   const [orderNo, setOrderNo] = useState<number | null | undefined>(undefined);
   const attempt = query.data;
   const currentOrderNo = orderNo === undefined ? attempt?.nextOrderNo ?? (attempt?.status === "IN_PROGRESS" ? attempt.questions[0]?.orderNo : null) : orderNo;
   const question = currentOrderNo == null ? undefined : attempt?.questions.find((item) => item.orderNo === currentOrderNo);
+  // 오답 복습 응시는 quizId가 없고(null), 백엔드는 이때 /quizzes/0/answers로 답안을 받는다.
   const mutation = useQuizAnswer(attempt?.quizId ?? 0);
   const cancel = useQuizAttemptCancel();
   if (query.isLoading) return <main className="p-8 text-center text-sm text-muted">퀴즈를 불러오는 중이에요.</main>;
   if (query.isError || !attempt) return <main className="p-8 text-center text-sm text-muted">{getErrorMessage(query.error, "퀴즈를 불러오지 못했습니다.")}</main>;
   const handleSubmit = () => {
-    if (!question || selected === null || !attempt.quizId) return;
+    if (!question || selected === null) return;
     const now = new Date();
-    mutation.mutate({ attemptId: attempt.attemptId, attemptQuestionId: question.attemptQuestionId, selectedChoiceNo: selected, activitySession: { sessionKey: `quiz-${attempt.attemptId}-${question.attemptQuestionId}`, startedAt: new Date(now.getTime() - 1000).toISOString(), endedAt: now.toISOString(), activeSeconds: 1 } }, { onSuccess: (result) => setAnswer(result) });
+    mutation.mutate({ attemptId: attempt.attemptId, attemptQuestionId: question.attemptQuestionId, selectedChoiceNo: selected, activitySession: { sessionKey: `quiz-${attempt.attemptId}-${question.attemptQuestionId}`, startedAt: new Date(now.getTime() - 1000).toISOString(), endedAt: now.toISOString(), activeSeconds: 1 } }, {
+      onSuccess: (result) => {
+        setAnswer(result);
+        if (!result.isCorrect) setWrongCount((count) => count + 1);
+        // 오답노트·커리큘럼 잠금·수료 상태가 바뀌므로 관련 화면 데이터를 다시 불러온다.
+        void queryClient.invalidateQueries({ queryKey: ["learning", "quiz-notes"] });
+        void queryClient.invalidateQueries({ queryKey: ["learning", "course"] });
+        void queryClient.invalidateQueries({ queryKey: ["learning", "enrollment"] });
+      },
+    });
   };
   const handleCancel = () => {
     if (!attempt || attempt.status !== "IN_PROGRESS") return router.push("/learner/library");
     cancel.mutate(attempt.attemptId, { onSuccess: () => router.push("/learner/library") });
   };
   // 종합 퀴즈는 id가 courseId라서 결과 화면에서 수료 여부를 조회한다.
-  const courseId = Number(search.get("courseId")) || undefined;
+  const courseId = type ? id : Number(search.get("courseId")) || undefined;
   const finishedHref = type === "FINAL" ? `/learner/quiz/result?courseId=${id}` : "/learner/library/quiz";
-  if (!question) return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4"><header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">퀴즈 완료</span></header><Card padding="md" className="mt-8 border border-success-line bg-success-soft-bg text-sm">모든 문제를 풀었어요.</Card>{!type && courseId ? <div className="mt-auto space-y-2"><Link href={continueLearningHref(courseId)} className="block"><Button fullWidth>이어서 학습</Button></Link><Link href={finishedHref} className="block"><Button fullWidth variant="outline">오답노트 보기</Button></Link></div> : <Link href={finishedHref} className="mt-auto block"><Button fullWidth>{type === "FINAL" ? "결과 보기" : "오답노트 보기"}</Button></Link>}</main>;
+  if (!question) return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4">
+    <header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">퀴즈 완료</span></header>
+    <Card padding="md" className={`mt-8 border text-sm ${wrongCount > 0 ? "border-warning-line bg-warning-bg" : "border-success-line bg-success-soft-bg"}`}>
+      <p>모든 문제를 풀었어요.</p>
+      {wrongCount > 0 && <p className="mt-2 text-xs leading-5 text-muted">틀린 문제 {wrongCount}개는 오답노트에 저장됐어요. 바로 다시 풀거나, 이어서 학습하다가 다시 만날 수 있어요.</p>}
+    </Card>
+    <div className="mt-auto space-y-2">
+      {wrongCount > 0 && courseId && type !== "WRONG_REVIEW" && <Link href={wrongReviewHref(courseId)} className="block"><Button fullWidth>틀린 문제 다시 풀기</Button></Link>}
+      {type === "FINAL" ? <Link href={finishedHref} className="block"><Button fullWidth variant={wrongCount > 0 ? "outline" : "primary"}>결과 보기</Button></Link>
+        : courseId ? <Link href={continueLearningHref(courseId)} className="block"><Button fullWidth variant={wrongCount > 0 && type !== "WRONG_REVIEW" ? "outline" : "primary"}>이어서 학습</Button></Link> : null}
+      <Link href="/learner/library/quiz" className="block"><Button fullWidth variant="outline">오답노트 보기</Button></Link>
+    </div>
+  </main>;
   return <main className="flex min-h-dvh flex-col px-5 pb-6 pt-4">
     <header className="flex items-center justify-between"><Link href="/learner/library" aria-label="닫기" className="text-xl">×</Link><span className="text-xs">{attempt.quizType === "UNIT" ? "단위 확인 퀴즈" : "퀴즈"}</span><span className="text-xs text-muted">{question.orderNo} / {attempt.totalQuestions}</span></header>
     <ProgressBar value={attempt.totalQuestions ? (question.orderNo / attempt.totalQuestions) * 100 : 0} className="mt-4" />
