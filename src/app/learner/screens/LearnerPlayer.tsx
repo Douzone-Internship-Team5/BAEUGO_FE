@@ -205,11 +205,10 @@ function VideoCard({ videoId, isActive, isNear, focusMode, onEnded }: { videoId:
   const viewedRef = useRef(false);
   const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [showScript, setShowScript] = useState(false);
 
-  // 화면에 들어오면 재생하고 벗어나면 멈춘다. 소리 있는 자동 재생이 막히면 음소거로 재생하고 소리 켜기 버튼을 보여 준다.
+  // 화면에 들어오면 재생하고 벗어나면 멈춘다. 소리 있는 자동 재생이 막히면 음소거로 재생하고, 화면을 누르면 소리를 켠다.
   useEffect(() => {
     const element = videoRef.current;
     if (!element) return;
@@ -219,7 +218,6 @@ function VideoCard({ videoId, isActive, isNear, focusMode, onEnded }: { videoId:
     }
     element.play().catch(() => {
       element.muted = true;
-      setMuted(true);
       void element.play().catch(() => undefined);
     });
   }, [isActive, playbackUrl]);
@@ -232,14 +230,12 @@ function VideoCard({ videoId, isActive, isNear, focusMode, onEnded }: { videoId:
   const togglePlayback = () => {
     const element = videoRef.current;
     if (!element) return;
+    if (element.muted) {
+      element.muted = false;
+      if (!element.paused) return;
+    }
     if (element.paused) void element.play().catch(() => undefined);
     else element.pause();
-  };
-  const unmute = () => {
-    const element = videoRef.current;
-    if (!element) return;
-    element.muted = false;
-    setMuted(false);
   };
 
   if (!isNear) return <div className="h-full" />;
@@ -293,7 +289,6 @@ function VideoCard({ videoId, isActive, isNear, focusMode, onEnded }: { videoId:
           ? <svg viewBox="0 0 24 24" className="size-4 fill-current"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
           : <svg viewBox="0 0 24 24" className="size-4 fill-current"><path d="M7 4.8c0-.8.9-1.3 1.6-.9l10.2 7.2a1.1 1.1 0 0 1 0 1.8L8.6 20.1c-.7.5-1.6 0-1.6-.9V4.8Z" /></svg>}
       </button>
-      {muted && <button type="button" onClick={unmute} className="absolute left-4 top-[calc(max(1rem,env(safe-area-inset-top))+3rem)] z-20 rounded-full bg-black/55 px-3 py-1.5 text-[11px] backdrop-blur">🔇 소리 켜기</button>}
 
       <div className="absolute right-4 top-[55%] z-10 flex -translate-y-1/2 flex-col items-center gap-6">
         <button type="button" onClick={() => (video?.isLiked ? unlike.mutate() : like.mutate())} disabled={!video || like.isPending || unlike.isPending} aria-label={video?.isLiked ? "좋아요 취소" : "좋아요"} className="flex cursor-pointer flex-col items-center gap-1 disabled:cursor-wait">
