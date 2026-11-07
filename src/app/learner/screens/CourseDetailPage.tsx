@@ -9,6 +9,7 @@ import useCourseDetail from "@/api/learning/useCourseDetail";
 import useCourseCompletion from "@/api/learning/useCourseCompletion";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 import { SectionTitle, Stat } from "../components/shared/LearnerUI";
+import { continueLearningHref } from "../_lib/learningHref";
 
 
 export function CourseDetailPage() {
@@ -62,6 +63,6 @@ export function CourseDetailPage() {
         </div>
       </section>
     </main>
-    <div className="fixed inset-x-0 bottom-[68px] z-10 mx-auto flex max-w-[430px] items-center justify-between border-t border-line bg-panel px-5 py-3"><div><p className="text-[10px] text-muted">수강료</p><p className="mt-0.5 text-sm font-medium">{course.isFree ? "무료" : `${course.priceKrw.toLocaleString()}원`}</p></div><Link href={`/learner/enroll/${course.courseId}`}><Button>{course.enrollment.isEnrolled ? "이어서 학습" : "수강 신청하기"}</Button></Link></div>
+    <div className="fixed inset-x-0 bottom-[68px] z-10 mx-auto flex max-w-[430px] items-center justify-between border-t border-line bg-panel px-5 py-3"><div><p className="text-[10px] text-muted">수강료</p><p className="mt-0.5 text-sm font-medium">{course.isFree ? "무료" : `${course.priceKrw.toLocaleString()}원`}</p></div><Link href={course.enrollment.isEnrolled ? continueLearningHref(course.courseId) : `/learner/enroll/${course.courseId}`}><Button>{course.enrollment.isEnrolled ? "이어서 학습" : "수강 신청하기"}</Button></Link></div>
   </>;
 }
