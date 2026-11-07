@@ -42,14 +42,12 @@ export const LoginPage = ({ className = "" }: Props) => {
 
       if (user.accountType === "OPERATOR") {
         router.replace("/admin/courses");
-      } else if (!user.onboarded) {
-        router.replace("/onboarding");
       } else if (activeMode === "INSTRUCTOR") {
-        router.replace("/instructor");
+        router.replace(user.onboarded ? "/instructor" : "/onboarding/instructor");
       } else if (activeMode === "LEARNER") {
-        router.replace("/learner");
+        router.replace(user.onboarded ? "/learner" : "/onboarding/learner");
       } else {
-        router.replace("/");
+        router.replace("/onboarding");
       }
     } catch (requestError) {
       if (requestError instanceof ApiError) {
