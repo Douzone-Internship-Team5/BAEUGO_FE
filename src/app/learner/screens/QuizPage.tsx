@@ -8,12 +8,20 @@ import { Button, Card } from "@/components/common";
 import useQuizAttempt from "@/api/learning/useQuizAttempt";
 import useQuizAnswer from "@/api/learning/useQuizAnswer";
 import useQuizAttemptCancel from "@/api/learning/useQuizAttemptCancel";
+import useQuizNotes from "@/api/learning/useQuizNotes";
 import type { QuizAnswerDto } from "@/types/learning";
 import { getErrorMessage } from "@/_lib/fetcher";
 import { ProgressBar } from "../components/shared/LearnerUI";
 import { continueLearningHref, wrongReviewHref } from "../_lib/learningHref";
 
 export function QuizPage() {
+  const params = useParams<{ quizId: string }>();
+  const search = useSearchParams();
+  // 오답을 하나씩 이어 풀 때 주소(questionId)만 바뀌므로, 문항이 바뀌면 화면 상태를 새로 시작한다.
+  return <QuizAttemptView key={`${params.quizId}?${search.toString()}`} />;
+}
+
+function QuizAttemptView() {
   const params = useParams<{ quizId: string }>();
   const router = useRouter();
   const search = useSearchParams();
@@ -22,6 +30,13 @@ export function QuizPage() {
   const type = attemptType === "FINAL" || attemptType === "WRONG_REVIEW" ? attemptType : undefined;
   const questionId = Number(search.get("questionId")) || undefined;
   const query = useQuizAttempt(id, type, questionId);
+  // 오답 한 문항을 다시 풀 때, 같은 강좌에 아직 안 푼 오답이 더 있으면 이어서 낸다. 이번에 거쳐 온 문항(seen)은 다시 내지 않는다.
+  const seenIds = (search.get("seen") ?? "").split(",").map(Number).filter(Boolean);
+  const wrongNotes = useQuizNotes("REVIEW_NEEDED", type === "WRONG_REVIEW" && !!questionId);
+  const nextWrongQuestionId = type === "WRONG_REVIEW" && questionId
+    ? wrongNotes.data?.quizNotes.find((note) => note.courseId === id && note.questionId !== questionId && !seenIds.includes(note.questionId))?.questionId
+    : undefined;
+  const nextWrongHref = nextWrongQuestionId ? `${wrongReviewHref(id, nextWrongQuestionId)}&seen=${[...seenIds, questionId].join(",")}` : undefined;
   const [selected, setSelected] = useState<number | null>(null);
   const [answer, setAnswer] = useState<QuizAnswerDto | null>(null);
   // 이번 응시에서 틀린 문항 수. 끝 화면에서 바로 다시 풀 수 있게 안내한다.
@@ -80,6 +95,6 @@ export function QuizPage() {
     {answer && <Card padding="md" className="mt-5 border border-line bg-panel"><p className="text-sm font-medium">{answer.isCorrect ? "정답이에요" : "다시 확인해 보세요"}</p><p className="mt-2 text-xs leading-5 text-muted">{answer.explanation}</p></Card>}
     {mutation.isError && <p role="alert" className="mt-3 text-xs text-danger">{getErrorMessage(mutation.error)}</p>}
     {cancel.isError && <p role="alert" className="mt-3 text-xs text-danger">{getErrorMessage(cancel.error, "응시를 취소하지 못했습니다.")}</p>}
-    <div className="mt-auto pt-6">{answer ? <Button fullWidth onClick={() => { setOrderNo(answer.nextOrderNo); setAnswer(null); setSelected(null); }}>{answer.nextOrderNo ? "다음 문제" : "결과 보기"}</Button> : <Button fullWidth disabled={selected === null || mutation.isPending} onClick={handleSubmit}>{mutation.isPending ? "채점 중…" : "정답 확인"}</Button>}<button type="button" onClick={handleCancel} disabled={cancel.isPending} className="mt-4 block w-full cursor-pointer text-center text-xs text-muted disabled:cursor-wait">{cancel.isPending ? "취소하는 중…" : "응시 취소하고 돌아가기"}</button></div>
+    <div className="mt-auto pt-6">{answer ? <Button fullWidth disabled={!answer.nextOrderNo && type === "WRONG_REVIEW" && !!questionId && wrongNotes.isFetching} onClick={() => { if (!answer.nextOrderNo && nextWrongHref) { router.push(nextWrongHref); return; } setOrderNo(answer.nextOrderNo); setAnswer(null); setSelected(null); }}>{answer.nextOrderNo || nextWrongHref ? "다음 문제" : "결과 보기"}</Button> : <Button fullWidth disabled={selected === null || mutation.isPending} onClick={handleSubmit}>{mutation.isPending ? "채점 중…" : "정답 확인"}</Button>}<button type="button" onClick={handleCancel} disabled={cancel.isPending} className="mt-4 block w-full cursor-pointer text-center text-xs text-muted disabled:cursor-wait">{cancel.isPending ? "취소하는 중…" : "응시 취소하고 돌아가기"}</button></div>
   </main>;
 }
