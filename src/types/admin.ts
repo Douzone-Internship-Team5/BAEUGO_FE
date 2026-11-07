@@ -156,3 +156,9 @@ export interface AdminUnpublishResponse {
   closedReason: string;
   closedAt: string;
 }
+
+export interface AdminRepublishResponse {
+  courseId: number;
+  status: AdminCourseStatus;
+  publishedAt: string;
+}

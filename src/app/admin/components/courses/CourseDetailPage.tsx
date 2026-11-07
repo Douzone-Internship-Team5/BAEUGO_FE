@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import useAdminCourseUnpublish from "@/api/admin/courses/useAdminCourseUnpublish";
+import useAdminCourseRepublish from "@/api/admin/courses/useAdminCourseRepublish";
+import { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "../../data/courseDetails";
 
 interface Props {
@@ -16,6 +18,7 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
   const [notice, setNotice] = useState("");
   const { course } = detail;
   const unpublishMutation = useAdminCourseUnpublish(course.courseId);
+  const republishMutation = useAdminCourseRepublish(course.courseId);
 
   const handleUnpublish = async (reason: string) => {
     try {
@@ -35,6 +38,24 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
     }
   };
 
+  const handleRepublish = async () => {
+    try {
+      const result = await republishMutation.mutateAsync();
+      setDetail((current) => ({
+        ...current,
+        course: {
+          ...current.course,
+          status: result.status,
+          publishedAt: result.publishedAt,
+          closedReason: undefined,
+        },
+      }));
+      setNotice("강좌를 다시 공개했습니다.");
+    } catch {
+      setNotice("");
+    }
+  };
+
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-7">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -48,18 +69,40 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
           </div>
           <p className="mt-2 text-sm text-muted">강좌 정보와 공개 콘텐츠를 확인합니다.</p>
         </div>
-        {(course.status === "PUBLISHED" || course.status === "EDITING") && (
-          <button
-            type="button"
-            onClick={() => setIsDialogOpen(true)}
-            className="h-10 cursor-pointer rounded-[4px] border border-danger-line px-4 text-xs font-medium text-danger transition hover:bg-danger-bg"
-          >
-            비공개 처리
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {course.status === "OPERATOR_HIDDEN" && (
+            <button
+              type="button"
+              onClick={() => void handleRepublish()}
+              disabled={republishMutation.isPending}
+              className="h-10 cursor-pointer rounded-[4px] bg-accent px-4 text-xs font-medium text-bg transition hover:brightness-105 disabled:cursor-wait disabled:opacity-50"
+            >
+              {republishMutation.isPending ? "재공개 중…" : "강좌 다시 공개"}
+            </button>
+          )}
+          {(course.status === "PUBLISHED" || course.status === "EDITING") && (
+            <button
+              type="button"
+              onClick={() => setIsDialogOpen(true)}
+              className="h-10 cursor-pointer rounded-[4px] border border-danger-line px-4 text-xs font-medium text-danger transition hover:bg-danger-bg"
+            >
+              비공개 처리
+            </button>
+          )}
+        </div>
       </div>
 
       {notice && <p role="status" className="rounded-[4px] border border-success-line bg-success-soft-bg px-4 py-3 text-xs text-success">{notice}</p>}
+      {republishMutation.error && (
+        <div role="alert" className="rounded-[4px] border border-danger-line bg-danger-bg px-4 py-3 text-xs text-danger">
+          <p>{getErrorMessage(republishMutation.error, "강좌 재공개에 실패했습니다.")}</p>
+          {republishMutation.error instanceof ApiError && republishMutation.error.missing && republishMutation.error.missing.length > 0 && (
+            <ul className="mt-2 list-disc space-y-1 pl-4">
+              {republishMutation.error.missing.map((item) => <li key={item}>{getPublishRequirementLabel(item)}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
       {course.status === "OPERATOR_HIDDEN" && course.closedReason && (
         <div className="rounded-[4px] border border-danger-line bg-danger-bg px-4 py-3 text-xs text-danger">
           <strong className="mr-2 font-medium">비공개 사유</strong>{course.closedReason}
@@ -266,7 +309,7 @@ const UnpublishDialog = ({ onClose, onConfirm, isPending }: UnpublishDialogProps
           !
         </div>
         <h2 id="unpublish-title" className="mt-4 text-lg font-semibold">강좌를 비공개 처리할까요?</h2>
-        <p className="mt-2 text-xs leading-5 text-muted">비공개된 강좌는 수강자에게 노출되지 않으며 강사는 수정하거나 다시 공개할 수 없습니다.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">비공개된 강좌는 수강자에게 노출되지 않습니다. 강사는 내용을 수정할 수 있으며, 재공개는 운영자가 진행합니다.</p>
         <label htmlFor="unpublish-reason" className="mt-5 block text-xs font-medium text-text-sub">
           비공개 사유 <span className="text-danger">*</span>
         </label>
@@ -298,6 +341,23 @@ const UnpublishDialog = ({ onClose, onConfirm, isPending }: UnpublishDialogProps
 
 const difficultyLabel = (value: AdminCourseDetail["difficulty"]) =>
   ({ BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급" })[value];
+
+const getPublishRequirementLabel = (value: string) => {
+  const code = value.split(":", 1)[0];
+  const labels: Record<string, string> = {
+    OT_VIDEO_MISSING: "무료 OT 영상을 등록해 주세요.",
+    SECTION_MISSING: "섹션을 하나 이상 등록해 주세요.",
+    LESSON_VIDEO_MISSING: "각 섹션에 학습 영상을 등록해 주세요.",
+    TRANSCRIPT_NOT_REVIEWED: "모든 학습 영상의 대본을 검수해 주세요.",
+    UNIT_QUIZ_MISSING: "각 섹션의 단위 퀴즈를 준비해 주세요.",
+    UNIT_QUIZ_NOT_REVIEWED: "모든 단위 퀴즈를 검수해 주세요.",
+    FINAL_QUIZ_MISSING: "종합 퀴즈를 준비해 주세요.",
+    FINAL_QUIZ_NOT_REVIEWED: "종합 퀴즈를 검수해 주세요.",
+    QUESTION_COUNT_INVALID: "퀴즈 문항 수를 확인해 주세요.",
+    CHOICE_COUNT_INVALID: "각 문항의 보기를 확인해 주세요.",
+  };
+  return labels[code] ?? value;
+};
 
 const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);

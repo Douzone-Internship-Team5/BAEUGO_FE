@@ -56,6 +56,11 @@ function PasswordSection() {
   const change = useChangePassword();
   const [form, setForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const mismatch = form.confirmPassword.length > 0 && form.newPassword !== form.confirmPassword;
+  const newPasswordBytes = new TextEncoder().encode(form.newPassword).length;
+  const passwordRuleInvalid = form.newPassword.length > 0 && (
+    form.newPassword.length < 8 || !/[A-Za-z]/.test(form.newPassword) || !/[0-9]/.test(form.newPassword)
+  );
+  const passwordTooLong = newPasswordBytes > 72;
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (mismatch) return;
@@ -66,8 +71,10 @@ function PasswordSection() {
       <input type="password" autoComplete="current-password" required placeholder="현재 비밀번호" value={form.currentPassword} onChange={(event) => setForm({ ...form, currentPassword: event.target.value })} className={inputClass} />
       <input type="password" autoComplete="new-password" required placeholder="새 비밀번호 (8자 이상, 영문·숫자 포함)" value={form.newPassword} onChange={(event) => setForm({ ...form, newPassword: event.target.value })} className={inputClass} />
       <input type="password" autoComplete="new-password" required placeholder="새 비밀번호 확인" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className={inputClass} />
+      {passwordRuleInvalid && <p className="text-[10px] text-danger">새 비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요.</p>}
+      {passwordTooLong && <p className="text-[10px] text-danger">새 비밀번호는 한글·영문을 포함해 UTF-8 기준 72바이트 이하여야 해요.</p>}
       {mismatch && <p className="text-[10px] text-danger">새 비밀번호가 일치하지 않아요.</p>}
-      <Button type="submit" fullWidth disabled={change.isPending || mismatch}>{change.isPending ? "변경 중…" : "비밀번호 변경"}</Button>
+      <Button type="submit" fullWidth disabled={change.isPending || mismatch || passwordRuleInvalid || passwordTooLong}>{change.isPending ? "변경 중…" : "비밀번호 변경"}</Button>
     </form>
     <Status error={change.error} success={change.isSuccess ? "비밀번호를 변경했어요." : null} />
   </SettingsCard>;

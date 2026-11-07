@@ -78,8 +78,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
         </div>
         {course.status === "OPERATOR_HIDDEN" && (
           <p className="mt-4 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">
-            운영자가 비공개 처리한 강좌입니다. 현재 API 정책상 강사가 콘텐츠를
-            수정할 수 없습니다.
+            운영자가 비공개 처리한 강좌입니다. 콘텐츠를 수정할 수 있으며, 보완을 마친 뒤 운영자에게 재공개를 요청해 주세요.
           </p>
         )}
         {statusMutation.error && (
@@ -201,8 +200,8 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
             수정 시작
           </button>
         ) : course.status === "OPERATOR_HIDDEN" ? (
-          <p className="mx-auto max-w-sm rounded-[4px] border border-danger-line bg-danger-bg px-3 py-3 text-center text-xs text-danger">
-            운영자 검토가 필요한 강좌입니다.
+          <p role="status" className="mx-auto max-w-sm rounded-[4px] border border-danger-line bg-danger-bg px-3 py-3 text-center text-xs leading-5 text-danger">
+            콘텐츠를 수정할 수 있습니다. 재공개는 운영자가 진행합니다.
           </p>
         ) : (
           <button

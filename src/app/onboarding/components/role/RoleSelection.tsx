@@ -24,7 +24,7 @@ export const RoleSelection = ({ className }: Props) => {
     setError("");
 
     if (!useAuthStore.getState().accessToken) {
-      router.push(role === "LEARNER" ? "/onboarding/learner" : "/login");
+      router.push(`/signup?role=${role}`);
       return;
     }
 
