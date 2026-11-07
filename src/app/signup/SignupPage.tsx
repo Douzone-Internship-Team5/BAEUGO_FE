@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { ApiError } from "@/_lib/fetcher";
 import { Button } from "@/components/common/Button";
 import postSignup, { type SignupRole } from "@/api/auth/postSignup";
-import { useAuthStore } from "@/app/login/store/useAuthStore";
+import { saveLoginSession } from "@/_lib/session";
 
 export const SignupPage = () => {
   const router = useRouter();
@@ -36,28 +36,7 @@ export const SignupPage = () => {
         password,
         ...(role ? { role } : {}),
       });
-      const { user, accessToken } = result;
-
-      useAuthStore.getState().setLoginState(true, accessToken, "");
-      useAuthStore.getState().setUser({
-        id: String(user.id),
-        email: user.email,
-        name: user.name,
-        profile_image: "",
-        activeMode: user.activeMode ?? user.role ?? null,
-      });
-      window.localStorage.setItem("accessToken", accessToken);
-
-      const activeMode = user.activeMode ?? user.role;
-      if (user.onboarded) {
-        router.replace(activeMode === "INSTRUCTOR" ? "/instructor" : "/learner");
-      } else if (activeMode === "LEARNER") {
-        router.replace("/onboarding/learner");
-      } else if (activeMode === "INSTRUCTOR") {
-        router.replace("/onboarding/instructor");
-      } else {
-        router.replace("/onboarding");
-      }
+      router.replace(saveLoginSession(result));
     } catch (requestError) {
       if (requestError instanceof ApiError) {
         setError(requestError.message);
