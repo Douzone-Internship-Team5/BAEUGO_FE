@@ -40,8 +40,8 @@ export const InstructorDashboard = () => {
         <section aria-label="강좌 목록" className="mt-3 divide-y divide-line">
           {visibleCourses.map((course) => <Link key={course.courseId} href={`/instructor/courses/${course.courseId}`} className="block cursor-pointer py-5 transition hover:bg-panel/50">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate text-[15px] font-medium leading-6">{course.title}</h2><p className="mt-1 text-[11px] text-muted">{course.enrollmentCount}명 수강 중</p></div><div className="flex shrink-0 items-center gap-2"><CourseStatusBadge status={course.status} /><span aria-hidden="true" className="text-muted">›</span></div></div>
-            {course.status === "OPERATOR_HIDDEN" && <p className="mt-3 rounded-[3px] bg-danger-bg px-3 py-2 text-[11px] text-danger">운영자 검토로 비공개 처리된 강좌입니다.</p>}
-            {(course.status === "DRAFT" || course.status === "EDITING") && <InstructorDashboardCourseReadiness courseId={course.courseId} />}
+            {course.status === "OPERATOR_HIDDEN" && <p className="mt-3 rounded-[3px] bg-danger-bg px-3 py-2 text-[11px] leading-5 text-danger">운영자 비공개 상태입니다. 강좌를 수정한 뒤 운영자에게 재공개를 요청할 수 있습니다.</p>}
+            {(course.status === "DRAFT" || course.status === "EDITING" || course.status === "OPERATOR_HIDDEN") && <InstructorDashboardCourseReadiness courseId={course.courseId} />}
           </Link>)}
           {visibleCourses.length === 0 && <p className="py-10 text-center text-sm text-muted">해당 상태의 강좌가 없습니다.</p>}
         </section>
