@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/_lib/fetcher";
 import { logout } from "@/_lib/logout";
 import type { QuizNotesDto } from "@/types/learning";
-import useCodes from "@/api/learning/useCodes";
+import useCodes from "@/api/codes/useCodes";
 
 const formatMinutes = (value?: number | null) => value ? `매일 ${value}분` : "미설정";
 

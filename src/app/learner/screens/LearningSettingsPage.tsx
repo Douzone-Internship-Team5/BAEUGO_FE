@@ -6,7 +6,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button, Card, Chip } from "@/components/common";
 import { getErrorMessage } from "@/_lib/fetcher";
-import useCodes from "@/api/learning/useCodes";
+import useCodes from "@/api/codes/useCodes";
 import { learningQueryKeys } from "@/api/learning/queryKeys";
 import useSaveOnboarding from "@/api/onboarding/useSaveOnboarding";
 import { userQueryKeys } from "@/api/user/queryKeys";
@@ -14,7 +14,7 @@ import useMe from "@/api/user/useMe";
 import type { TimeSlot } from "@/app/onboarding/data/options";
 import { TimeSlotList } from "@/app/onboarding/components/learner/TimeSlotList";
 import type { LearnerOnboardingRequest } from "@/types/onboarding";
-import type { CodesDto } from "@/types/learning";
+import type { CodesDto } from "@/types/codes";
 import type { MeDto } from "@/types/user";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 

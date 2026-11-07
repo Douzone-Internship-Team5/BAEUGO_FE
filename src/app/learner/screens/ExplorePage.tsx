@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Chip } from "@/components/common";
 import useCourseSearch from "@/api/learning/useCourseSearch";
-import useCodes from "@/api/learning/useCodes";
+import useCodes from "@/api/codes/useCodes";
 import { BrandHeader } from "../components/shared/LearnerHeader";
 import { CourseTile } from "../components/shared/LearnerUI";
 const difficultyLabel: Record<string, string> = {
