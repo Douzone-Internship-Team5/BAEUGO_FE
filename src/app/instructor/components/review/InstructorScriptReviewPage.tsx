@@ -8,6 +8,7 @@ import useSaveInstructorScript from "@/api/instructor/useSaveInstructorScript";
 import useRegenerateInstructorScript from "@/api/instructor/useRegenerateInstructorScript";
 import type { InstructorScriptSegmentDto } from "@/types/instructor";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
+import { InstructorVideoPreview } from "./InstructorVideoPreview";
 
 interface Props { courseId: string; videoId: string }
 const formatTime = (milliseconds: number) => `${String(Math.floor(milliseconds / 60_000)).padStart(2, "0")}:${String(Math.floor(milliseconds / 1000) % 60).padStart(2, "0")}`;
@@ -35,6 +36,22 @@ export const InstructorScriptReviewPage = ({ courseId: rawCourseId, videoId: raw
     setDraftSegments((current) => (current ?? scriptQuery.data?.segments ?? []).map((segment, itemIndex) => itemIndex === index ? { ...segment, content } : segment));
     setNotice("");
   };
+  // 소리가 없거나 음성 인식이 구간을 찾지 못한 영상은 강사가 대본을 직접 입력한다.
+  const addSegment = () => {
+    setDraftSegments((current) => {
+      const list = current ?? scriptQuery.data?.segments ?? [];
+      const startMs = list.at(-1)?.endMs ?? 0;
+      const videoEndMs = (video?.durationSeconds ?? 0) * 1000;
+      if (videoEndMs > 0 && startMs >= videoEndMs) return list;
+      const endMs = videoEndMs > startMs ? Math.min(startMs + 10_000, videoEndMs) : startMs + 10_000;
+      return [...list, { seq: list.length + 1, startMs, endMs, content: "" }];
+    });
+    setNotice("");
+  };
+  const removeSegment = (index: number) => {
+    setDraftSegments((current) => (current ?? scriptQuery.data?.segments ?? []).filter((_, itemIndex) => itemIndex !== index));
+    setNotice("");
+  };
   const handleSave = async () => {
     try {
       await saveMutation.mutateAsync(segments.map((segment, index) => ({ ...segment, seq: index + 1 })));
@@ -54,10 +71,10 @@ export const InstructorScriptReviewPage = ({ courseId: rawCourseId, videoId: raw
 
   return <div className="min-h-dvh pb-24"><InstructorScreenHeader title="대본 검수" backHref={backHref} right={<button type="button" onClick={() => void handleRegenerate()} disabled={regenerateMutation.isPending} className="cursor-pointer rounded-full border border-line px-3 py-2 text-[10px] text-text-sub disabled:cursor-not-allowed disabled:opacity-50">{regenerateMutation.isPending ? "요청 중…" : "대본 다시 생성"}</button>} />
     <main className="mx-auto max-w-3xl px-4 pt-5 md:px-8 md:pt-8"><div className="flex items-center justify-between"><div><p className="text-[10px] text-muted">{video?.videoType === "OT" ? "무료 OT" : "강의 영상"}{video ? ` · ${formatTime(video.durationSeconds * 1000)}` : ""}</p><h1 className="mt-1 text-base font-medium">{video?.title ?? "영상 대본"}</h1></div><span className={`text-[10px] ${scriptQuery.data?.transcriptReviewedAt ? "text-success" : "text-warning"}`}>{scriptQuery.data?.transcriptReviewedAt ? "검수 완료" : scriptQuery.data?.sttStatus ?? "불러오는 중"}</span></div>
-      <div className="mt-4 flex aspect-video items-center justify-center rounded-[4px] border border-line bg-panel"><span className="text-xs text-muted">영상 미리보기는 영상 재생 API 연동 후 제공됩니다.</span></div>
+      <InstructorVideoPreview videoId={videoId} />
       {scriptQuery.isPending && <p className="py-8 text-center text-sm text-muted">대본을 불러오는 중입니다.</p>}
       {scriptQuery.error && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{scriptQuery.error.message}</p>}
-      {segments.length > 0 ? <><div className="mt-4 rounded-[4px] border border-warning-line bg-warning-bg px-3 py-2.5 text-[10px] leading-5 text-warning">음성 인식 결과를 확인하고 잘못 인식된 문장을 수정해 주세요.</div><section className="mt-5 flex flex-col gap-2.5">{segments.map((segment, index) => <TranscriptSegment key={`${videoId}-${segment.seq}`} time={`${formatTime(segment.startMs)} – ${formatTime(segment.endMs)}`} value={segment.content} onChange={(content) => updateContent(index, content)} />)}</section></> : !scriptQuery.isPending && !scriptQuery.error && <p className="mt-5 rounded border border-line bg-panel p-4 text-center text-xs text-muted">검수할 대본 구간이 없습니다. 대본을 다시 생성해 주세요.</p>}
+      {segments.length > 0 ? <><div className="mt-4 rounded-[4px] border border-warning-line bg-warning-bg px-3 py-2.5 text-[10px] leading-5 text-warning">음성 인식 결과를 확인하고 잘못 인식된 문장을 수정해 주세요.</div><section className="mt-5 flex flex-col gap-2.5">{segments.map((segment, index) => <TranscriptSegment key={`${videoId}-${index}`} time={`${formatTime(segment.startMs)} – ${formatTime(segment.endMs)}`} value={segment.content} onChange={(content) => updateContent(index, content)} onRemove={draftSegments ? () => removeSegment(index) : undefined} />)}</section><AddSegmentButton onClick={addSegment} /></> : !scriptQuery.isPending && !scriptQuery.error && <div className="mt-5 rounded border border-line bg-panel p-4 text-center"><p className="text-xs leading-5 text-muted">음성 인식으로 찾은 대본 구간이 없어요. 소리가 없는 영상이면 대본을 직접 입력하고, 말소리가 있다면 대본을 다시 생성해 주세요.</p><AddSegmentButton onClick={addSegment} label="대본 직접 입력" /></div>}
       {(saveMutation.error || regenerateMutation.error) && <p role="alert" className="mt-4 rounded border border-danger-line bg-danger-bg p-3 text-xs text-danger">{(saveMutation.error ?? regenerateMutation.error)?.message}</p>}
       {notice && <p role="status" className="mt-4 rounded border border-success-line bg-success-soft-bg p-3 text-xs text-success">{notice}</p>}
       <div className="mt-8 flex justify-center pb-6"><button type="button" onClick={() => void handleSave()} disabled={saveMutation.isPending || segments.length === 0 || segments.some((segment) => !segment.content.trim())} className="h-11 w-full cursor-pointer rounded-[4px] bg-accent text-xs font-medium text-bg disabled:cursor-not-allowed disabled:opacity-50">{saveMutation.isPending ? "저장 중…" : "저장하고 검수 완료"}</button></div>
@@ -65,5 +82,7 @@ export const InstructorScriptReviewPage = ({ courseId: rawCourseId, videoId: raw
   </div>;
 };
 
-interface TranscriptSegmentProps { time: string; value: string; onChange: (value: string) => void }
-const TranscriptSegment = ({ time, value, onChange }: TranscriptSegmentProps) => <label className="grid grid-cols-[100px_1fr] gap-2.5 rounded-[4px] border border-line bg-panel p-3"><span className="self-start pt-2 text-[10px] tabular-nums text-accent">{time}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} aria-label={`${time} 대본`} className="resize-y bg-transparent text-xs leading-5 text-text-sub outline-none" /></label>;
+interface TranscriptSegmentProps { time: string; value: string; onChange: (value: string) => void; onRemove?: () => void }
+const TranscriptSegment = ({ time, value, onChange, onRemove }: TranscriptSegmentProps) => <div className="grid grid-cols-[100px_1fr] gap-2.5 rounded-[4px] border border-line bg-panel p-3"><div className="flex flex-col items-start gap-1.5 pt-2"><span className="text-[10px] tabular-nums text-accent">{time}</span>{onRemove && <button type="button" onClick={onRemove} aria-label={`${time} 구간 삭제`} className="cursor-pointer text-[10px] text-muted hover:text-danger">삭제</button>}</div><textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} aria-label={`${time} 대본`} placeholder="이 구간에서 설명하는 내용을 입력해 주세요" className="resize-y bg-transparent text-xs leading-5 text-text-sub outline-none placeholder:text-muted" /></div>;
+
+const AddSegmentButton = ({ onClick, label = "＋ 구간 추가" }: { onClick: () => void; label?: string }) => <button type="button" onClick={onClick} className="mt-3 h-10 w-full cursor-pointer rounded-[4px] border border-dashed border-line text-[11px] text-text-sub hover:border-accent hover:text-accent">{label}</button>;
