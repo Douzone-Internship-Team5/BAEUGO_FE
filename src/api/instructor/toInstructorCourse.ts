@@ -1,18 +1,18 @@
-import { JOB_CATEGORIES } from "@/app/onboarding/data/options";
+import { getJobCategoryLabel, getTopicLabel } from "@/_lib/codes";
+import type { CodesDto } from "@/types/codes";
 import type { InstructorCourse, InstructorCourseDetail } from "@/app/instructor/data/courses";
 import type { InstructorCourseDetailDto, InstructorCourseItemDto, InstructorCourseStatus } from "@/types/instructor";
 
-const getCategory = (categoryId: number) => JOB_CATEGORIES?.find((category) => category.id === categoryId);
-const getTopicName = (categoryId: number, topicId: number) => getCategory(categoryId)?.topics.find((topic) => topic.id === topicId)?.name ?? `주제 #${topicId}`;
 const formatDuration = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 const isCourseStatus = (status: string): status is InstructorCourseStatus => ["DRAFT", "PUBLISHED", "EDITING", "OPERATOR_HIDDEN"].includes(status);
 
-export const toInstructorCourse = (dto: InstructorCourseItemDto): InstructorCourse => ({
+/** codes는 GET /codes 응답. 아직 받지 못했으면 직무·주제를 id로 표시한다. */
+export const toInstructorCourse = (dto: InstructorCourseItemDto, codes?: CodesDto): InstructorCourse => ({
   courseId: dto.courseId,
   title: dto.title,
   summary: "",
-  category: getCategory(dto.categoryId)?.name ?? `직무 #${dto.categoryId}`,
-  topic: getTopicName(dto.categoryId, dto.topicId),
+  category: getJobCategoryLabel(codes, dto.categoryId) ?? `직무 #${dto.categoryId}`,
+  topic: getTopicLabel(codes, dto.topicId),
   status: isCourseStatus(dto.status) ? dto.status : "DRAFT",
   priceKrw: dto.priceKrw,
   enrollmentCount: dto.enrollmentCount,
@@ -29,13 +29,13 @@ const quizSummary = (quiz: InstructorCourseDetailDto["finalQuiz"]) => ({
   reviewed: Boolean(quiz?.reviewedAt),
 });
 
-export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto): InstructorCourseDetail => {
+export const toInstructorCourseDetail = (dto: InstructorCourseDetailDto, codes?: CodesDto): InstructorCourseDetail => {
   const base: InstructorCourse = {
     courseId: dto.courseId,
     title: dto.title,
     summary: dto.description,
-    category: getCategory(dto.categoryId)?.name ?? `직무 #${dto.categoryId}`,
-    topic: getTopicName(dto.categoryId, dto.topicId),
+    category: getJobCategoryLabel(codes, dto.categoryId) ?? `직무 #${dto.categoryId}`,
+    topic: getTopicLabel(codes, dto.topicId),
     status: dto.status,
     priceKrw: dto.priceKrw,
     enrollmentCount: 0,

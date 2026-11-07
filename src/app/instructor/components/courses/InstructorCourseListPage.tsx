@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Card, CourseStatusBadge } from "@/components/common";
 import useInstructorCourses from "@/api/instructor/useInstructorCourses";
+import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourse } from "@/api/instructor/toInstructorCourse";
 import type { CourseStatus } from "@/constants/colors";
 import { COURSE_STATUS_FILTERS } from "../../data/courses";
@@ -16,7 +17,8 @@ export const InstructorCourseListPage = () => {
   const [status, setStatus] = useState<StatusFilter>("ALL");
 
   const { data, error, isPending } = useInstructorCourses(status === "ALL" ? undefined : status);
-  const courses = (data?.items ?? []).map(toInstructorCourse);
+  const { data: codes } = useCodes();
+  const courses = (data?.items ?? []).map((item) => toInstructorCourse(item, codes));
 
   const filteredCourses = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { AiStatusBadge, Card, CourseStatusBadge } from "@/components/common";
 import useInstructorCourse from "@/api/instructor/useInstructorCourse";
 import useInstructorCourseStatus from "@/api/instructor/useInstructorCourseStatus";
+import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourseDetail } from "@/api/instructor/toInstructorCourse";
 import { ApiError } from "@/_lib/fetcher";
 import type { InstructorCourseDetail } from "../../data/courses";
@@ -22,6 +23,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
   const [showStartEditingConfirm, setShowStartEditingConfirm] = useState(false);
   const courseQuery = useInstructorCourse(courseId);
   const statusMutation = useInstructorCourseStatus(courseId);
+  const { data: codes } = useCodes();
   if (courseQuery.isPending)
     return <PageMessage>강좌 정보를 불러오는 중입니다.</PageMessage>;
   if (courseQuery.error || !courseQuery.data)
@@ -32,6 +34,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
     );
   const course: InstructorCourseDetail = toInstructorCourseDetail(
     courseQuery.data,
+    codes,
   );
   const completed = course.publishRequirements.filter(
     (item) => item.complete,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import useInstructorCourses from "@/api/instructor/useInstructorCourses";
+import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourse } from "@/api/instructor/toInstructorCourse";
 import { COURSE_STATUS_FILTERS } from "../../data/courses";
 import { InstructorDashboardCourseReadiness } from "./InstructorDashboardCourseReadiness";
@@ -15,7 +16,8 @@ type Filter = (typeof COURSE_STATUS_FILTERS)[number]["value"];
 export const InstructorDashboard = () => {
   const [filter, setFilter] = useState<Filter>("ALL");
   const { data, error, isPending } = useInstructorCourses(filter === "ALL" ? undefined : filter);
-  const courses = useMemo(() => (data?.items ?? []).map(toInstructorCourse), [data]);
+  const { data: codes } = useCodes();
+  const courses = useMemo(() => (data?.items ?? []).map((item) => toInstructorCourse(item, codes)), [data, codes]);
   const visibleCourses = courses;
   const total = data?.total ?? 0;
   const counts = data?.counts;
