@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/components/common";
+import { Card } from "@/components/common";
 import { useAuthStore } from "@/app/login/store/useAuthStore";
 import { BrandHeader } from "../components/shared/LearnerHeader";
 import useMe from "@/api/user/useMe";
@@ -36,7 +36,6 @@ export default function MyPage() {
       <Card padding="md" className="flex items-center gap-3 border border-line bg-panel">{meQuery.data?.profileImageUrl ? <span role="img" aria-label="프로필 사진" className="size-12 shrink-0 rounded-full bg-cover bg-center" style={{ backgroundImage: `url("${meQuery.data.profileImageUrl}")` }} /> : <span className="flex size-12 items-center justify-center rounded-full bg-selected text-lg">{name.slice(0, 1)}</span>}<div><p className="text-sm font-medium">{name}</p><p className="mt-1 text-[10px] text-muted">{user?.email || "계정 정보를 불러오는 중"}</p></div></Card>
       <Card padding="md" className="border border-line bg-panel"><h1 className="text-sm font-medium">학습 설정</h1><div className="mt-3 divide-y divide-line">{settings.map((item) => <div key={item.label} className="flex items-center justify-between gap-4 py-3 text-xs"><span className="shrink-0 text-muted">{item.label}</span><span className="text-right">{item.value}</span></div>)}</div></Card>
       <Card padding="none" className="divide-y divide-line border border-line bg-panel">{menu.map((item) => <Link key={item.label} href={item.href} className="flex items-center justify-between px-4 py-4 text-xs"><span>{item.label}</span><span className="text-muted">{item.value}</span></Link>)}</Card>
-      <Link href="/instructor" className="block"><Button fullWidth variant="outline">강사 모드로 전환</Button></Link>
       <button type="button" onClick={() => { setUser(null); useAuthStore.getState().setLoginState(false, "", ""); window.localStorage.removeItem("accessToken"); router.replace("/login"); }} className="w-full py-2 text-xs text-muted">로그아웃</button>
     </main>
   </>;
