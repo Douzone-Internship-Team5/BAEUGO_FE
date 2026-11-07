@@ -306,7 +306,7 @@ const formatDuration = (seconds: number) => {
 };
 
 const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
+  new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Seoul" })
     .format(new Date(value))
     .replaceAll(". ", ".")
     .replace(/\.$/, "");
