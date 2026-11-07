@@ -8,12 +8,15 @@ import useInstructorCourse from "@/api/instructor/useInstructorCourse";
 import useInstructorCourseStatus from "@/api/instructor/useInstructorCourseStatus";
 import useCodes from "@/api/codes/useCodes";
 import { toInstructorCourseDetail } from "@/api/instructor/toInstructorCourse";
-import { ApiError } from "@/_lib/fetcher";
+import { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import type { InstructorCourseDetail } from "@/types/instructor";
 import { InstructorMobileNav } from "../shared/InstructorMobileNav";
 import { InstructorScreenHeader } from "../shared/InstructorScreenHeader";
 import { StartEditingConfirmDialog } from "./StartEditingConfirmDialog";
 import { InstructorVideoUpload } from "./InstructorVideoUpload";
+import { InstructorSectionActions } from "./InstructorSectionActions";
+import { InstructorSectionCreate } from "./InstructorSectionCreate";
+import useDeleteInstructorVideo from "@/api/instructor/useDeleteInstructorVideo";
 
 interface Props {
   courseId: number;
@@ -39,6 +42,8 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
   const completed = course.publishRequirements.filter(
     (item) => item.complete,
   ).length;
+  // 백엔드 INSTRUCTOR_EDITABLE_STATUSES와 같다. 공개 중인 강좌는 "수정 시작" 후 편집할 수 있다.
+  const isEditable = ["DRAFT", "EDITING", "OPERATOR_HIDDEN"].includes(course.status);
   const canPublish =
     courseQuery.data.publishCheck.isReady &&
     ["DRAFT", "EDITING"].includes(course.status);
@@ -155,7 +160,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
                 등록된 무료 OT 영상이 없습니다.
               </p>
             )}
-            {["DRAFT", "EDITING", "OPERATOR_HIDDEN"].includes(course.status) && (
+            {isEditable && (
               <InstructorVideoUpload
                 courseId={course.courseId}
                 videoType="OT"
@@ -176,6 +181,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
                   key={`${course.courseId}-${section.sectionId}-${video.videoId ?? video.title}-${videoIndex}`}
                   courseId={course.courseId}
                   video={video}
+                  deletable={isEditable}
                 />
               ))}
               {section.videos.length === 0 && (
@@ -183,8 +189,31 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
                   등록된 영상이 없습니다.
                 </p>
               )}
+              {isEditable && (
+                <InstructorVideoUpload
+                  courseId={course.courseId}
+                  videoType="LESSON"
+                  sectionId={section.sectionId}
+                />
+              )}
+              {isEditable && (
+                <InstructorSectionActions
+                  courseId={course.courseId}
+                  sectionId={section.sectionId}
+                  title={section.title}
+                />
+              )}
             </ContentCard>
           ))}
+          {isEditable ? (
+            <InstructorSectionCreate courseId={course.courseId} />
+          ) : (
+            course.status === "PUBLISHED" && (
+              <p className="mb-3 text-[11px] text-muted">
+                섹션과 학습 영상을 바꾸려면 아래 &quot;수정 시작&quot;을 눌러 주세요.
+              </p>
+            )
+          )}
           <ContentCard
             title="종합 퀴즈"
             subtitle={`${course.lessonCount}개 영상 대상`}
@@ -313,8 +342,47 @@ const ContentCard = ({
 interface VideoRowProps {
   courseId: number;
   video: NonNullable<InstructorCourseDetail["otVideo"]>;
+  deletable?: boolean;
 }
-const VideoRow = ({ courseId, video }: VideoRowProps) => (
+const VideoRow = ({ courseId, video, deletable = false }: VideoRowProps) =>
+  deletable ? (
+    <div className="flex items-stretch">
+      <div className="min-w-0 flex-1">
+        <VideoLink courseId={courseId} video={video} />
+      </div>
+      <VideoDeleteButton courseId={courseId} videoId={video.videoId} title={video.title} />
+    </div>
+  ) : (
+    <VideoLink courseId={courseId} video={video} />
+  );
+
+interface VideoDeleteButtonProps {
+  courseId: number;
+  videoId: number;
+  title: string;
+}
+/** 한 번 누르면 확인 상태가 되고, 다시 누르면 삭제한다. */
+const VideoDeleteButton = ({ courseId, videoId, title }: VideoDeleteButtonProps) => {
+  const deleteMutation = useDeleteInstructorVideo(courseId);
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <div className="flex shrink-0 flex-col items-end justify-center gap-1 px-3">
+      <button
+        type="button"
+        aria-label={confirming ? `${title} 영상 삭제 확인` : `${title} 영상 삭제`}
+        onClick={() => (confirming ? deleteMutation.mutate(videoId) : setConfirming(true))}
+        onBlur={() => { if (!deleteMutation.isPending) setConfirming(false); }}
+        disabled={deleteMutation.isPending}
+        className={`cursor-pointer rounded-[4px] px-2 py-1.5 text-[10px] transition disabled:cursor-wait ${confirming ? "border border-danger-line bg-danger-bg text-danger" : "text-muted hover:text-danger"}`}
+      >
+        {deleteMutation.isPending ? "삭제 중…" : confirming ? "삭제 확인" : "삭제"}
+      </button>
+      {deleteMutation.error && <span role="alert" className="text-[10px] text-danger">{getErrorMessage(deleteMutation.error)}</span>}
+    </div>
+  );
+};
+
+const VideoLink = ({ courseId, video }: Omit<VideoRowProps, "deletable">) => (
   <Link
     href={`/instructor/courses/${courseId}/videos/${video.videoId}/script`}
     className="group flex cursor-pointer items-center gap-3 px-3 py-3.5 transition-colors hover:bg-panel/70"
