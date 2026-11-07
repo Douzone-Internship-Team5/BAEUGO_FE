@@ -10,6 +10,7 @@ import useMyEnrollments from "@/api/learning/useMyEnrollments";
 import useMyLikes from "@/api/learning/useMyLikes";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/_lib/fetcher";
+import { logout } from "@/_lib/logout";
 import type { QuizNotesDto } from "@/types/learning";
 import useCodes from "@/api/learning/useCodes";
 
@@ -24,7 +25,6 @@ export default function MyPage() {
   const likes = useMyLikes();
   const notes = useQuery({ queryKey: ["learning", "quiz-notes"], queryFn: async ({ signal }) => { const response = await api.get<QuizNotesDto>({ endpoint: "/me/quiz-notes", signal }); if (!response) throw new Error("오답노트 응답이 비어 있습니다."); return response.data; } });
   const user = meQuery.data ?? authUser;
-  const setUser = useAuthStore((state) => state.setUser);
   const name = user?.name?.trim() || "김배우";
   const learnerSetup = meQuery.data?.onboarding && "interestTopicIds" in meQuery.data.onboarding ? meQuery.data.onboarding : null;
   const interestNames = (codes.data?.topics ?? []).filter((topic) => learnerSetup?.interestTopicIds.includes(topic.id)).map((topic) => topic.name);
@@ -36,7 +36,7 @@ export default function MyPage() {
       <Card padding="md" className="flex items-center gap-3 border border-line bg-panel">{meQuery.data?.profileImageUrl ? <span role="img" aria-label="프로필 사진" className="size-12 shrink-0 rounded-full bg-cover bg-center" style={{ backgroundImage: `url("${meQuery.data.profileImageUrl}")` }} /> : <span className="flex size-12 items-center justify-center rounded-full bg-selected text-lg">{name.slice(0, 1)}</span>}<div><p className="text-sm font-medium">{name}</p><p className="mt-1 text-[10px] text-muted">{user?.email || "계정 정보를 불러오는 중"}</p></div></Card>
       <Card padding="md" className="border border-line bg-panel"><h1 className="text-sm font-medium">학습 설정</h1><div className="mt-3 divide-y divide-line">{settings.map((item) => <div key={item.label} className="flex items-center justify-between gap-4 py-3 text-xs"><span className="shrink-0 text-muted">{item.label}</span><span className="text-right">{item.value}</span></div>)}</div></Card>
       <Card padding="none" className="divide-y divide-line border border-line bg-panel">{menu.map((item) => <Link key={item.label} href={item.href} className="flex items-center justify-between px-4 py-4 text-xs"><span>{item.label}</span><span className="text-muted">{item.value}</span></Link>)}</Card>
-      <button type="button" onClick={() => { setUser(null); useAuthStore.getState().setLoginState(false, "", ""); window.localStorage.removeItem("accessToken"); router.replace("/login"); }} className="w-full py-2 text-xs text-muted">로그아웃</button>
+      <button type="button" onClick={async () => { await logout(); router.replace("/login"); }} className="w-full py-2 text-xs text-muted">로그아웃</button>
     </main>
   </>;
 }
