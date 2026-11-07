@@ -23,8 +23,12 @@ export function QuizPage() {
   const query = useQuizAttempt(id, type, questionId);
   const [selected, setSelected] = useState<number | null>(null);
   const [answer, setAnswer] = useState<QuizAnswerDto | null>(null);
+  // 응답의 questions에는 전체 문항이 들어 있으므로 지금 풀 순번(nextOrderNo)의 문항을 보여 준다.
+  // 다음 문항은 답안 제출 응답의 nextOrderNo로 넘기고, 다시 조회하지 않는다(완료된 응시를 다시 조회하면 새 응시가 시작될 수 있음).
+  const [orderNo, setOrderNo] = useState<number | null | undefined>(undefined);
   const attempt = query.data;
-  const question = attempt?.questions[0];
+  const currentOrderNo = orderNo === undefined ? attempt?.nextOrderNo ?? (attempt?.status === "IN_PROGRESS" ? attempt.questions[0]?.orderNo : null) : orderNo;
+  const question = currentOrderNo == null ? undefined : attempt?.questions.find((item) => item.orderNo === currentOrderNo);
   const mutation = useQuizAnswer(attempt?.quizId ?? 0);
   const cancel = useQuizAttemptCancel();
   if (query.isLoading) return <main className="p-8 text-center text-sm text-muted">퀴즈를 불러오는 중이에요.</main>;
@@ -50,6 +54,6 @@ export function QuizPage() {
     {answer && <Card padding="md" className="mt-5 border border-line bg-panel"><p className="text-sm font-medium">{answer.isCorrect ? "정답이에요" : "다시 확인해 보세요"}</p><p className="mt-2 text-xs leading-5 text-muted">{answer.explanation}</p></Card>}
     {mutation.isError && <p role="alert" className="mt-3 text-xs text-danger">{getErrorMessage(mutation.error)}</p>}
     {cancel.isError && <p role="alert" className="mt-3 text-xs text-danger">{getErrorMessage(cancel.error, "응시를 취소하지 못했습니다.")}</p>}
-    <div className="mt-auto pt-6">{answer ? <Button fullWidth onClick={() => { setAnswer(null); setSelected(null); void query.refetch(); }}>{answer.nextOrderNo ? "다음 문제" : "결과 보기"}</Button> : <Button fullWidth disabled={selected === null || mutation.isPending} onClick={handleSubmit}>{mutation.isPending ? "채점 중…" : "정답 확인"}</Button>}<button type="button" onClick={handleCancel} disabled={cancel.isPending} className="mt-4 block w-full cursor-pointer text-center text-xs text-muted disabled:cursor-wait">{cancel.isPending ? "취소하는 중…" : "응시 취소하고 돌아가기"}</button></div>
+    <div className="mt-auto pt-6">{answer ? <Button fullWidth onClick={() => { setOrderNo(answer.nextOrderNo); setAnswer(null); setSelected(null); }}>{answer.nextOrderNo ? "다음 문제" : "결과 보기"}</Button> : <Button fullWidth disabled={selected === null || mutation.isPending} onClick={handleSubmit}>{mutation.isPending ? "채점 중…" : "정답 확인"}</Button>}<button type="button" onClick={handleCancel} disabled={cancel.isPending} className="mt-4 block w-full cursor-pointer text-center text-xs text-muted disabled:cursor-wait">{cancel.isPending ? "취소하는 중…" : "응시 취소하고 돌아가기"}</button></div>
   </main>;
 }
