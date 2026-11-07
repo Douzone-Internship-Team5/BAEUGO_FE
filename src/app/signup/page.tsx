@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { SignupPage } from "./SignupPage";
 
 export const metadata: Metadata = {
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Suspense fallback={<main className="grid min-h-dvh place-items-center bg-[#0b0d11] text-sm text-[#9299a5]">회원가입 화면을 불러오는 중…</main>}><SignupPage /></Suspense>;
+  return <Suspense fallback={<main className="grid min-h-dvh place-items-center bg-[#0b0d11] text-sm text-[#9299a5]">회원가입 화면을 불러오는 중…</main>}><AuthGuard area="public"><SignupPage /></AuthGuard></Suspense>;
 }

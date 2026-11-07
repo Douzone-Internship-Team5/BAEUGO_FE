@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { ReactNode } from "react";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { InstructorShell } from "./components/shared/InstructorShell";
 import InstructorQueryProvider from "./InstructorQueryProvider";
 
@@ -15,7 +16,9 @@ export default function InstructorLayout({ children }: Props) {
   return (
     <Suspense fallback={<InstructorShellFallback />}>
       <InstructorQueryProvider>
-        <InstructorShell>{children}</InstructorShell>
+        <AuthGuard area="instructor">
+          <InstructorShell>{children}</InstructorShell>
+        </AuthGuard>
       </InstructorQueryProvider>
     </Suspense>
   );

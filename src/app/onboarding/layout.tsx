@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import OnboardingQueryProvider from "./OnboardingQueryProvider";
 
 interface Props {
@@ -6,5 +7,9 @@ interface Props {
 }
 
 export default function OnboardingLayout({ children }: Props) {
-  return <OnboardingQueryProvider>{children}</OnboardingQueryProvider>;
+  return (
+    <AuthGuard area="onboarding">
+      <OnboardingQueryProvider>{children}</OnboardingQueryProvider>
+    </AuthGuard>
+  );
 }
