@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CourseStatusBadge } from "@/components/common";
 import useAdminCourseUnpublish from "@/api/admin/courses/useAdminCourseUnpublish";
 import useAdminCourseRepublish from "@/api/admin/courses/useAdminCourseRepublish";
+import usePlaybackUrl from "@/api/learning/usePlaybackUrl";
 import { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "../../data/courseDetails";
 
@@ -194,6 +195,52 @@ const MetadataItem = ({ label, value }: MetadataItemProps) => (
   </div>
 );
 
+interface OpenVideoButtonProps {
+  videoId: number;
+}
+
+/** 스트리밍은 Authorization 헤더가 없는 새 탭에서 열리므로 서명 재생 URL을 발급받아 연다. */
+const OpenVideoButton = ({ videoId }: OpenVideoButtonProps) => {
+  const playback = usePlaybackUrl();
+  const [error, setError] = useState("");
+
+  const handleOpen = () => {
+    if (playback.isPending) return;
+    setError("");
+    // 팝업 차단을 피하려고 클릭 시점에 창을 먼저 연 뒤 URL을 채운다.
+    const popup = window.open("", "_blank");
+    playback.mutate(videoId, {
+      onSuccess: ({ playbackUrl }) => {
+        if (popup && !popup.closed) {
+          popup.opener = null;
+          popup.location.href = playbackUrl;
+        } else {
+          window.open(playbackUrl, "_blank", "noopener,noreferrer");
+        }
+      },
+      onError: (playbackError) => {
+        popup?.close();
+        setError(getErrorMessage(playbackError, "영상을 열지 못했습니다."));
+      },
+    });
+  };
+
+  return (
+    <div className="flex shrink-0 flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleOpen}
+        disabled={playback.isPending}
+        className="flex h-9 cursor-pointer items-center justify-center rounded-[4px] border border-line-strong px-3 text-xs text-text-sub transition hover:bg-selected disabled:cursor-wait disabled:opacity-60"
+      >
+        {playback.isPending ? "여는 중…" : "영상 열기"}
+        <span className="sr-only"> 새 탭에서 영상 재생</span>
+      </button>
+      {error && <p role="alert" className="text-[10px] text-danger">{error}</p>}
+    </div>
+  );
+};
+
 interface VideoReviewCardProps {
   video: ReviewVideo;
   label: string;
@@ -212,15 +259,7 @@ const VideoReviewCard = ({ video, label }: VideoReviewCardProps) => (
           {video.transcriptReviewedAt && <span>검수 {formatDate(video.transcriptReviewedAt)}</span>}
         </div>
       </div>
-      <a
-        href={video.videoUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-[4px] border border-line-strong px-3 text-xs text-text-sub transition hover:bg-selected"
-      >
-        영상 열기
-        <span className="sr-only"> 새 탭에서 영상 재생</span>
-      </a>
+      <OpenVideoButton videoId={video.videoId} />
     </div>
     <details className="mt-4 border-t border-line pt-3">
       <summary className="w-fit cursor-pointer text-xs text-muted transition hover:text-text">
