@@ -32,20 +32,22 @@ export function LearningSettingsPage() {
         ? <p className="py-10 text-center text-sm text-muted">학습 설정을 불러오는 중이에요.</p>
         : me.isError || codes.isError
           ? <p role="alert" className="py-10 text-center text-sm text-danger">{getErrorMessage(me.error ?? codes.error, "학습 설정을 불러오지 못했습니다.")}</p>
-          : <LearningSettingsForm key={me.dataUpdatedAt} onboarding={onboarding} codes={codes.data} />}
+          : <LearningSettingsForm key={me.dataUpdatedAt} initialName={me.data.name} onboarding={onboarding} codes={codes.data} />}
     </main>
   </>;
 }
 
 interface FormProps {
+  initialName: string;
   onboarding: LearnerOnboarding | null;
   codes: CodesDto;
 }
 
-function LearningSettingsForm({ onboarding, codes }: FormProps) {
+function LearningSettingsForm({ initialName, onboarding, codes }: FormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const save = useSaveOnboarding();
+  const [name, setName] = useState(initialName);
   const [currentStatus, setCurrentStatus] = useState(onboarding?.currentStatus ?? "");
   const [categoryId, setCategoryId] = useState<number | null>(onboarding?.categoryId ?? null);
   const [topicIds, setTopicIds] = useState<number[]>(onboarding?.interestTopicIds ?? []);
@@ -61,7 +63,8 @@ function LearningSettingsForm({ onboarding, codes }: FormProps) {
 
   const category = codes.jobCategories.find(({ id }) => id === categoryId);
   const topics = codes.topics.filter((topic) => topic.categoryId === categoryId);
-  const isValid = Boolean(currentStatus) && Boolean(category) && topicIds.length > 0 && goal !== null;
+  const trimmedName = name.trim();
+  const isValid = trimmedName.length > 0 && Boolean(currentStatus) && Boolean(category) && topicIds.length > 0 && goal !== null;
 
   const handleCategoryChange = (nextId: number) => {
     if (nextId === categoryId) return;
@@ -78,6 +81,7 @@ function LearningSettingsForm({ onboarding, codes }: FormProps) {
     event.preventDefault();
     if (!isValid || !category || goal === null) return;
     save.mutate({
+      name: trimmedName,
       jobCategory: category.code,
       currentStatus: currentStatus as LearnerOnboardingRequest["currentStatus"],
       interestTopicIds: topicIds,
@@ -96,6 +100,10 @@ function LearningSettingsForm({ onboarding, codes }: FormProps) {
   };
 
   return <form onSubmit={handleSubmit} className="space-y-4">
+    <SettingsCard title="이름">
+      <input required maxLength={50} value={name} onChange={(event) => setName(event.target.value)} placeholder="이름을 입력해 주세요" aria-label="이름" className="h-11 w-full rounded-[4px] border border-line bg-panel px-3 text-xs text-text placeholder:text-dim focus:border-line-focus focus:outline-none" />
+      {!trimmedName && <p className="mt-2 text-[10px] text-danger">이름은 1~50자로 입력해 주세요.</p>}
+    </SettingsCard>
     <SettingsCard title="현재 상황">
       <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="현재 상황">
         {codes.currentStatuses.map(({ code, label }) => <Chip key={code} mode="radio" selected={currentStatus === code} onChange={() => setCurrentStatus(code)}>{label}</Chip>)}
