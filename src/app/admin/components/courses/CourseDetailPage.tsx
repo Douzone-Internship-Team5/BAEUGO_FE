@@ -6,6 +6,8 @@ import { CourseStatusBadge } from "@/components/common";
 import useAdminCourseUnpublish from "@/api/admin/courses/useAdminCourseUnpublish";
 import useAdminCourseRepublish from "@/api/admin/courses/useAdminCourseRepublish";
 import usePlaybackUrl from "@/api/learning/usePlaybackUrl";
+import useCodes from "@/api/codes/useCodes";
+import { getDifficultyLabel } from "@/_lib/codes";
 import { ApiError, getErrorMessage } from "@/_lib/fetcher";
 import type { AdminCourseDetail, ReviewQuiz, ReviewVideo } from "@/types/admin";
 
@@ -20,6 +22,7 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
   const { course } = detail;
   const unpublishMutation = useAdminCourseUnpublish(course.courseId);
   const republishMutation = useAdminCourseRepublish(course.courseId);
+  const { data: codes } = useCodes();
 
   const handleUnpublish = async (reason: string) => {
     try {
@@ -122,7 +125,7 @@ export const CourseDetailPage = ({ initialDetail }: Props) => {
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line pt-4 sm:grid-cols-3">
               <MetadataItem label="직무" value={course.jobCategory} />
               <MetadataItem label="주제" value={detail.topicName} />
-              <MetadataItem label="난이도" value={difficultyLabel(detail.difficulty)} />
+              <MetadataItem label="난이도" value={getDifficultyLabel(codes, detail.difficulty)} />
               <MetadataItem label="판매 가격" value={`${course.priceKrw.toLocaleString("ko-KR")}원`} />
               <MetadataItem label="수강생" value={`${course.enrollmentCount.toLocaleString("ko-KR")}명`} />
               <MetadataItem label="공개일" value={formatDate(course.publishedAt)} />
@@ -377,9 +380,6 @@ const UnpublishDialog = ({ onClose, onConfirm, isPending }: UnpublishDialogProps
     </div>
   );
 };
-
-const difficultyLabel = (value: AdminCourseDetail["difficulty"]) =>
-  ({ BEGINNER: "초급", INTERMEDIATE: "중급", ADVANCED: "고급" })[value];
 
 const getPublishRequirementLabel = (value: string) => {
   const code = value.split(":", 1)[0];
