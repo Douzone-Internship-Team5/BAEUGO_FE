@@ -58,6 +58,8 @@ export function LearnerPlayer() {
   }, [course.data, isLesson, start.data]);
 
   const scrollRef = useRef<HTMLElement>(null);
+  // 방해금지 모드: 무료 OT 피드처럼 영상 위의 화면 요소를 숨긴다. 넘겨도 유지된다.
+  const [focusMode, setFocusMode] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const startIndex = items.findIndex((item) => item.kind === "VIDEO" && item.videoId === startVideoId);
   const currentIndex = activeIndex >= 0 ? activeIndex : Math.max(startIndex, 0);
@@ -118,14 +120,17 @@ export function LearnerPlayer() {
                 videoId={item.videoId}
                 isActive={index === currentIndex}
                 isNear={Math.abs(index - currentIndex) <= 1}
+                focusMode={focusMode}
                 onEnded={() => { if (index + 1 < items.length) goTo(index + 1); }}
               />
             )
           ) : (
             <QuizCard item={item} />
           )}
-          <CardHeader backHref={backHref} title={headerTitle} subtitle={item.kind === "VIDEO" ? item.sectionTitle : null} position={isLesson ? `${index + 1} / ${items.length}` : "무료 OT"} />
-          {isLesson && index < items.length - 1 && <p className="pointer-events-none absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-10 text-center text-[10px] text-white/50">위로 넘기면 다음 {items[index + 1].kind === "VIDEO" ? "강의" : "퀴즈"}</p>}
+          {!focusMode && <CardHeader backHref={backHref} title={headerTitle} subtitle={item.kind === "VIDEO" ? item.sectionTitle : null} position={isLesson ? `${index + 1} / ${items.length}` : "무료 OT"} />}
+          {focusMode && item.kind === "VIDEO" && <button type="button" onClick={() => setFocusMode(false)} aria-label="화면 요소 다시 표시" className="absolute inset-0 z-20 cursor-pointer bg-transparent" />}
+          <button type="button" onClick={() => setFocusMode((value) => !value)} aria-label={focusMode ? "방해금지모드 해제" : "방해금지모드 켜기"} className="absolute right-4 top-[calc(max(1rem,env(safe-area-inset-top))+2.5rem)] z-30 cursor-pointer rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[10px] font-medium text-white/90 backdrop-blur-sm">{focusMode ? "방해금지 해제" : "방해금지"}</button>
+          {!focusMode && isLesson && index < items.length - 1 && <p className="pointer-events-none absolute inset-x-0 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-10 text-center text-[10px] text-white/50">위로 넘기면 다음 {items[index + 1].kind === "VIDEO" ? "강의" : "퀴즈"}</p>}
         </section>
       ))}
     </main>
@@ -176,7 +181,7 @@ function QuizCard({ item }: { item: Extract<ShortformItem, { kind: "UNIT_QUIZ" |
   );
 }
 
-function VideoCard({ videoId, isActive, isNear, onEnded }: { videoId: number; isActive: boolean; isNear: boolean; onEnded: () => void }) {
+function VideoCard({ videoId, isActive, isNear, focusMode, onEnded }: { videoId: number; isActive: boolean; isNear: boolean; focusMode: boolean; onEnded: () => void }) {
   const detail = useVideoDetail(videoId, isNear);
   const video = detail.data;
   const playback = useQuery({
@@ -189,7 +194,8 @@ function VideoCard({ videoId, isActive, isNear, onEnded }: { videoId: number; is
     retry: false,
   });
   const playbackUrl = playback.data?.playbackUrl;
-  const progress = useVideoProgressAutoSave(videoId, video?.durationSeconds);
+  const isOt = video?.videoType === "OT";
+  const progress = useVideoProgressAutoSave(videoId, video?.durationSeconds, !!video && !isOt);
   const view = useVideoView(videoId);
   const like = useVideoLike(videoId);
   const unlike = useVideoUnlike(videoId);
@@ -254,7 +260,7 @@ function VideoCard({ videoId, isActive, isNear, onEnded }: { videoId: number; is
           }}
           onPlay={(event) => { setPlaying(true); progress.onPlay(event.currentTarget.currentTime); }}
           onPause={() => { setPlaying(false); progress.onStop(); }}
-          onEnded={() => { progress.onStop(); onEnded(); }}
+          onEnded={() => { progress.onEnded(); onEnded(); }}
           onSeeking={(event) => progress.onSeeking(event.currentTarget.currentTime)}
           onTimeUpdate={(event) => {
             const current = event.currentTarget.currentTime;
@@ -279,6 +285,7 @@ function VideoCard({ videoId, isActive, isNear, onEnded }: { videoId: number; is
           {videoError ? "영상을 재생할 수 없어요." : playback.isError ? getErrorMessage(playback.error, "재생 URL을 발급하지 못했습니다.") : "재생 준비 중이에요."}
         </p>
       )}
+      {!focusMode && <>
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.35)_0%,transparent_25%,transparent_55%,rgba(0,0,0,.85)_100%)]" />
 
       <button type="button" onClick={togglePlayback} aria-label={playing ? "일시정지" : "재생"} className="absolute left-1/2 top-1/2 z-10 grid size-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/55 bg-black/10 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
@@ -313,9 +320,10 @@ function VideoCard({ videoId, isActive, isNear, onEnded }: { videoId: number; is
         <h1 className="text-base font-bold leading-6">{video?.title ?? ""}</h1>
         <div className="mt-2.5 h-0.5 w-full bg-white/20"><div className="h-full bg-[#9bb5ff] transition-[width]" style={{ width: `${percent}%` }} /></div>
         <p className="mt-1.5 text-[10px] text-white/55">
-          {progress.error ? <span role="alert" className="text-[#ff9caa]">진도를 저장하지 못했어요. {getErrorMessage(progress.error)}</span> : video?.progress.isCompleted ? "완료한 강의예요 · 진도는 자동으로 저장돼요" : `${percent}% 시청 · 90% 이상 보면 다음이 열려요`}
+          {progress.error ? <span role="alert" className="text-[#ff9caa]">진도를 저장하지 못했어요. {getErrorMessage(progress.error)}</span> : isOt ? "무료 OT · 진도는 저장되지 않아요" : video?.progress.isCompleted ? "완료한 강의예요 · 진도는 자동으로 저장돼요" : `${percent}% 시청 · 90% 이상 보면 다음이 열려요`}
         </p>
       </div>
+      </>}
     </div>
   );
 }
