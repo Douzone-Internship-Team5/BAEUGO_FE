@@ -17,6 +17,7 @@ const NAVIGATION = [
   { href: "/instructor/courses/new", label: "새 강좌", icon: "new" },
   { href: "/instructor/stats", label: "통계", icon: "stats" },
   { href: "/instructor/profile", label: "강사 정보", icon: "profile" },
+  { href: "/instructor/account", label: "계정 설정", icon: "settings" },
 ] as const;
 
 export const InstructorShell = ({ children }: Props) => {
