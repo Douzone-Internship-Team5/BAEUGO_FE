@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { AiStatusBadge, Card, CourseStatusBadge } from "@/components/common";
 import useInstructorCourse from "@/api/instructor/useInstructorCourse";
 import useInstructorCourseStatus from "@/api/instructor/useInstructorCourseStatus";
@@ -17,6 +18,10 @@ import { InstructorVideoUpload } from "./InstructorVideoUpload";
 import { InstructorSectionActions } from "./InstructorSectionActions";
 import { InstructorSectionCreate } from "./InstructorSectionCreate";
 import useDeleteInstructorVideo from "@/api/instructor/useDeleteInstructorVideo";
+import useDeleteInstructorCourse from "@/api/instructor/useDeleteInstructorCourse";
+import useReorderInstructorCurriculum from "@/api/instructor/useReorderInstructorCurriculum";
+import { InstructorVideoEditForm } from "./InstructorVideoEditForm";
+import { useDragSort } from "./useDragSort";
 
 interface Props {
   courseId: number;
@@ -82,9 +87,13 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
               {course.priceKrw.toLocaleString("ko-KR")}원
             </p>
             {isEditable && (
-              <Link href={`/instructor/courses/${course.courseId}/edit`} className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-line px-3 py-1.5 text-[11px] text-text-sub transition hover:border-accent hover:text-accent">
-                강좌 정보 수정
-              </Link>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Link href={`/instructor/courses/${course.courseId}/edit`} className="inline-flex w-fit items-center gap-1 rounded-full border border-line px-3 py-1.5 text-[11px] text-text-sub transition hover:border-accent hover:text-accent">
+                  강좌 정보 수정
+                </Link>
+                {/* 백엔드는 한 번도 공개된 적 없는 작성 중 강좌만 삭제한다. */}
+                {course.status === "DRAFT" && !course.publishedAt && <CourseDeleteButton courseId={course.courseId} />}
+              </div>
             )}
           </div>
           <CourseStatusBadge status={course.status} />
@@ -159,7 +168,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
             quizStatus={null}
           >
             {course.otVideo ? (
-              <VideoRow courseId={course.courseId} video={course.otVideo} />
+              <VideoRow courseId={course.courseId} video={course.otVideo} editable={isEditable} />
             ) : (
               <p className="px-3 py-4 text-xs text-muted">
                 등록된 무료 OT 영상이 없습니다.
@@ -173,43 +182,7 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
               />
             )}
           </ContentCard>
-          {course.sections.map((section, index) => (
-            <ContentCard
-              key={section.sectionId}
-              title={`섹션 ${index + 1}. ${section.title}`}
-              subtitle={`${section.videos.length}개 영상`}
-              quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=${section.sectionId}`}
-              quizStatus={section.quiz}
-            >
-              {section.videos.map((video, videoIndex) => (
-                <VideoRow
-                  key={`${course.courseId}-${section.sectionId}-${video.videoId ?? video.title}-${videoIndex}`}
-                  courseId={course.courseId}
-                  video={video}
-                  deletable={isEditable}
-                />
-              ))}
-              {section.videos.length === 0 && (
-                <p className="px-3 py-4 text-xs text-muted">
-                  등록된 영상이 없습니다.
-                </p>
-              )}
-              {isEditable && (
-                <InstructorVideoUpload
-                  courseId={course.courseId}
-                  videoType="LESSON"
-                  sectionId={section.sectionId}
-                />
-              )}
-              {isEditable && (
-                <InstructorSectionActions
-                  courseId={course.courseId}
-                  sectionId={section.sectionId}
-                  title={section.title}
-                />
-              )}
-            </ContentCard>
-          ))}
+          <SectionList course={course} isEditable={isEditable} />
           {isEditable ? (
             <InstructorSectionCreate courseId={course.courseId} />
           ) : (
@@ -293,6 +266,9 @@ const SectionTitle = ({ eyebrow, title }: SectionTitleProps) => (
 
 interface ContentCardProps {
   title: string;
+  handle?: ReactNode;
+  cardRef?: (element: HTMLElement | null) => void;
+  dragging?: boolean;
   subtitle: string;
   children?: ReactNode;
   quizHref: string | null;
@@ -303,14 +279,19 @@ interface ContentCardProps {
 }
 const ContentCard = ({
   title,
+  handle,
+  cardRef,
+  dragging = false,
   subtitle,
   children,
   quizHref,
   quizStatus,
 }: ContentCardProps) => (
+  <div ref={cardRef} className={`rounded-[4px] transition-shadow ${dragging ? "relative z-10 shadow-lg ring-2 ring-accent" : ""}`}>
   <Card padding="none" className="mb-3 overflow-hidden border border-line">
     <div className="flex items-center justify-between gap-2 bg-panel px-3 py-3">
-      <div className="min-w-0">
+      {handle}
+      <div className="min-w-0 flex-1">
         <h3 className="truncate text-xs font-medium">{title}</h3>
         <p className="mt-1 text-[10px] text-muted">{subtitle}</p>
       </div>
@@ -342,24 +323,169 @@ const ContentCard = ({
       </div>
     )}
   </Card>
+  </div>
 );
 
 interface VideoRowProps {
   courseId: number;
   video: NonNullable<InstructorCourseDetail["otVideo"]>;
+  editable?: boolean;
   deletable?: boolean;
+  handle?: ReactNode;
 }
-const VideoRow = ({ courseId, video, deletable = false }: VideoRowProps) =>
-  deletable ? (
-    <div className="flex items-stretch">
-      <div className="min-w-0 flex-1">
-        <VideoLink courseId={courseId} video={video} />
+const VideoRow = ({ courseId, video, editable = false, deletable = false, handle }: VideoRowProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  if (!editable && !deletable) return <VideoLink courseId={courseId} video={video} />;
+  return (
+    <div>
+      <div className="flex items-stretch">
+        {handle}
+        <div className="min-w-0 flex-1">
+          <VideoLink courseId={courseId} video={video} />
+        </div>
+        {editable && (
+          <div className="flex shrink-0 items-center pl-1">
+            <button type="button" aria-label={`${video.title} 영상 수정`} aria-expanded={isEditing} onClick={() => setIsEditing((open) => !open)} className="cursor-pointer rounded-[4px] px-2 py-1.5 text-[10px] text-muted transition hover:text-text">
+              수정
+            </button>
+          </div>
+        )}
+        {deletable && <VideoDeleteButton courseId={courseId} videoId={video.videoId} title={video.title} />}
       </div>
-      <VideoDeleteButton courseId={courseId} videoId={video.videoId} title={video.title} />
+      {isEditing && <InstructorVideoEditForm courseId={courseId} videoId={video.videoId} title={video.title} onClose={() => setIsEditing(false)} />}
     </div>
-  ) : (
-    <VideoLink courseId={courseId} video={video} />
   );
+};
+
+type HandleProps = ReturnType<ReturnType<typeof useDragSort<number>>["handleProps"]>;
+/** 끌어서 순서를 바꾸는 손잡이. 포커스 후 ↑/↓ 키로도 옮길 수 있다. */
+const DragHandle = ({ label, props, className = "" }: { label: string; props: HandleProps; className?: string }) => (
+  <button
+    type="button"
+    aria-label={`${label} 순서 바꾸기 (끌거나 위아래 화살표 키)`}
+    className={`flex shrink-0 cursor-grab touch-none select-none items-center justify-center text-dim transition hover:text-text active:cursor-grabbing aria-disabled:cursor-wait aria-disabled:opacity-40 ${className}`}
+    {...(props as HTMLAttributes<HTMLButtonElement>)}
+  >
+    <svg aria-hidden="true" width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="2" cy="2" r="1.3" /><circle cx="8" cy="2" r="1.3" /><circle cx="2" cy="7" r="1.3" /><circle cx="8" cy="7" r="1.3" /><circle cx="2" cy="12" r="1.3" /><circle cx="8" cy="12" r="1.3" /></svg>
+  </button>
+);
+
+interface SectionListProps {
+  course: InstructorCourseDetail;
+  isEditable: boolean;
+}
+/** 섹션 카드 목록. 편집할 수 있으면 섹션과 섹션 안 학습 영상을 끌어서 순서를 바꾼다. */
+const SectionList = ({ course, isEditable }: SectionListProps) => {
+  const { reorder, isPending, error } = useReorderInstructorCurriculum(course.courseId);
+  const sectionsById = new Map(course.sections.map((section) => [section.sectionId, section]));
+  const sort = useDragSort(
+    course.sections.map((section) => section.sectionId),
+    (sectionIds) => reorder({ kind: "sections", sectionIds }),
+    isPending,
+  );
+  return (
+    <>
+      {isEditable && course.sections.length > 1 && <p className="mb-2 text-[10px] text-muted">왼쪽 손잡이를 끌어 섹션과 영상 순서를 바꿀 수 있어요.</p>}
+      {error && <p role="alert" className="mb-3 rounded-[4px] border border-danger-line bg-danger-bg p-3 text-xs leading-5 text-danger">순서를 저장하지 못했어요. {getErrorMessage(error)}</p>}
+      {isPending && <p role="status" className="mb-2 text-[10px] text-accent">순서를 저장하는 중…</p>}
+      {sort.order.map((sectionId, index) => {
+        const section = sectionsById.get(sectionId);
+        if (!section) return null;
+        return (
+          <ContentCard
+            key={section.sectionId}
+            cardRef={sort.itemRef(section.sectionId)}
+            dragging={sort.draggingKey === section.sectionId}
+            handle={isEditable && course.sections.length > 1 ? <DragHandle label={`섹션 ${section.title}`} props={sort.handleProps(section.sectionId)} className="-ml-1 h-8 w-6" /> : undefined}
+            title={`섹션 ${index + 1}. ${section.title}`}
+            subtitle={`${section.videos.length}개 영상`}
+            quizHref={`/instructor/courses/${course.courseId}/quiz?sectionId=${section.sectionId}`}
+            quizStatus={section.quiz}
+          >
+            <SectionVideos courseId={course.courseId} section={section} isEditable={isEditable} reorder={reorder} isPending={isPending} />
+            {section.videos.length === 0 && (
+              <p className="px-3 py-4 text-xs text-muted">
+                등록된 영상이 없습니다.
+              </p>
+            )}
+            {isEditable && (
+              <InstructorVideoUpload
+                courseId={course.courseId}
+                videoType="LESSON"
+                sectionId={section.sectionId}
+              />
+            )}
+            {isEditable && (
+              <InstructorSectionActions
+                courseId={course.courseId}
+                sectionId={section.sectionId}
+                title={section.title}
+              />
+            )}
+          </ContentCard>
+        );
+      })}
+    </>
+  );
+};
+
+interface SectionVideosProps {
+  courseId: number;
+  section: InstructorCourseDetail["sections"][number];
+  isEditable: boolean;
+  reorder: ReturnType<typeof useReorderInstructorCurriculum>["reorder"];
+  isPending: boolean;
+}
+const SectionVideos = ({ courseId, section, isEditable, reorder, isPending }: SectionVideosProps) => {
+  const videosById = new Map(section.videos.map((video) => [video.videoId, video]));
+  const sort = useDragSort(
+    section.videos.map((video) => video.videoId),
+    (videoIds) => reorder({ kind: "videos", sectionId: section.sectionId, videoIds }),
+    isPending,
+  );
+  const sortable = isEditable && section.videos.length > 1;
+  return sort.order.map((videoId) => {
+    const video = videosById.get(videoId);
+    if (!video) return null;
+    return (
+      <div key={video.videoId} ref={sort.itemRef(video.videoId)} className={sort.draggingKey === video.videoId ? "relative z-10 bg-panel shadow-lg ring-2 ring-accent" : ""}>
+        <VideoRow
+          courseId={courseId}
+          video={video}
+          editable={isEditable}
+          deletable={isEditable}
+          handle={sortable ? <DragHandle label={`영상 ${video.title}`} props={sort.handleProps(video.videoId)} className="w-7" /> : undefined}
+        />
+      </div>
+    );
+  });
+};
+
+interface CourseDeleteButtonProps {
+  courseId: number;
+}
+/** 한 번 누르면 확인 문구가 나오고, 다시 누르면 강좌를 지운 뒤 내 강좌로 돌아간다. */
+const CourseDeleteButton = ({ courseId }: CourseDeleteButtonProps) => {
+  const router = useRouter();
+  const deleteMutation = useDeleteInstructorCourse(courseId);
+  const [confirming, setConfirming] = useState(false);
+  if (!confirming)
+    return (
+      <button type="button" onClick={() => setConfirming(true)} className="inline-flex w-fit cursor-pointer items-center rounded-full border border-line px-3 py-1.5 text-[11px] text-muted transition hover:border-danger-line hover:text-danger">
+        강좌 삭제
+      </button>
+    );
+  return (
+    <div role="group" aria-label="강좌 삭제 확인" className="flex w-full flex-wrap items-center gap-2 rounded-[4px] border border-danger-line bg-danger-bg px-3 py-2">
+      <span className="text-[11px] leading-5 text-danger">강좌와 영상, 퀴즈가 모두 지워지고 되돌릴 수 없어요.</span>
+      <div className="ml-auto flex gap-2">
+        <button type="button" onClick={() => { setConfirming(false); deleteMutation.reset(); }} disabled={deleteMutation.isPending} className="h-8 cursor-pointer rounded-[4px] border border-line px-3 text-[11px] text-muted disabled:cursor-not-allowed">취소</button>
+        <button type="button" onClick={() => deleteMutation.mutate(undefined, { onSuccess: () => router.replace("/instructor") })} disabled={deleteMutation.isPending} className="h-8 cursor-pointer rounded-[4px] bg-danger px-3 text-[11px] font-medium text-bg disabled:cursor-wait">{deleteMutation.isPending ? "삭제 중…" : "삭제하기"}</button>
+      </div>
+      {deleteMutation.error && <p role="alert" className="w-full text-[11px] text-danger">{getErrorMessage(deleteMutation.error)}</p>}
+    </div>
+  );
+};
 
 interface VideoDeleteButtonProps {
   courseId: number;
