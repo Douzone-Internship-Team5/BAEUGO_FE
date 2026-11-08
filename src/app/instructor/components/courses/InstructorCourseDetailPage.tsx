@@ -81,6 +81,11 @@ export const InstructorCourseDetailPage = ({ courseId }: Props) => {
               {course.category} · {course.topic} ·{" "}
               {course.priceKrw.toLocaleString("ko-KR")}원
             </p>
+            {isEditable && (
+              <Link href={`/instructor/courses/${course.courseId}/edit`} className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-line px-3 py-1.5 text-[11px] text-text-sub transition hover:border-accent hover:text-accent">
+                강좌 정보 수정
+              </Link>
+            )}
           </div>
           <CourseStatusBadge status={course.status} />
         </div>
