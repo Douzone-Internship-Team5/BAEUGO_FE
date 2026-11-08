@@ -117,6 +117,7 @@ export function ExplorePage() {
             <CourseTile
               key={item.courseId}
               title={item.title}
+              thumbnailUrl={item.thumbnailUrl}
               meta={`${item.category.name} · ${item.topic.name} · ${getDifficultyLabel(codes.data, item.difficulty)}`}
               price={
                 item.isFree ? "무료" : `${item.priceKrw.toLocaleString()}원`

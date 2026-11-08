@@ -9,7 +9,7 @@ import useCourseDetail from "@/api/learning/useCourseDetail";
 import useCourseCompletion from "@/api/learning/useCourseCompletion";
 import { LearnerHeader } from "../components/shared/LearnerHeader";
 import { SectionTitle, Stat } from "../components/shared/LearnerUI";
-import { continueLearningHref } from "../_lib/learningHref";
+import { continueLearningHref, wrongReviewHref } from "../_lib/learningHref";
 
 
 export function CourseDetailPage() {
@@ -32,9 +32,9 @@ export function CourseDetailPage() {
         <p className="mb-3 text-[10px] text-muted">총 {course.totalLessonCount}강 · 학습 진도 {course.enrollment.progressPercent}%</p>
         {completion && (
           <Card padding="sm" className={`mb-3 border text-xs ${completion.isCompleted ? "border-success-line bg-success-soft-bg" : "border-line bg-panel"}`}>
-            <p className="font-medium">{completion.isCompleted ? "수료 완료" : "수료 전"}</p>
+            <p className="font-medium">{completion.isCompleted ? "수료 완료" : completion.redirectTarget === "LIBRARY_QUIZ_NOTES" ? "수료 전 · 오답 복습만 남았어요" : "수료 전"}</p>
             <p className="mt-1 text-[11px] text-muted">{completion.message}</p>
-            {completion.redirectTarget === "LIBRARY_QUIZ_NOTES" && <Link href="/learner/library/quiz" className="mt-2 inline-block text-[11px] text-accent">오답노트에서 해결하기 →</Link>}
+            {completion.redirectTarget === "LIBRARY_QUIZ_NOTES" && <Link href={wrongReviewHref(course.courseId)} className="mt-2 inline-block text-[11px] text-accent">틀린 문제 {completion.unresolvedWrongCount}개 풀고 수료하기 →</Link>}
           </Card>
         )}
         <div className="space-y-2">
